@@ -1,5 +1,5 @@
-outputFile('\\solved\\puzzle_00.txt').
-inputFile('\\unsolved\\puzzle_00.txt').
+outputFile('.\\solved\\puzzle_00.txt').
+inputFile('.\\unsolved\\puzzle_00.txt').
 
 /********************* solving the puzzle */
 doSolve(P,P).
@@ -19,9 +19,7 @@ writeFullOutput(puzzle(10,5)):-
   write('____*___1*'), nl,
   write('_*10_*X_0_'), nl,
   write('_______*_1'), nl,
-  write('__*2_1*_X*'), nl,
   write('___*___1*_'), nl.
-writeFullOutput(P):- write('cannot solve puzzle: '), write(P), nl.
 
 /********************** reading the input */
 readProblem(puzzle(X,Y)):- 
@@ -84,10 +82,11 @@ is_number_code(95,0).
 input_output(IF,OF):- 
 	current_prolog_flag(argv,['--io',IF,OF]), !.
 input_output(IF,OF):- 
+	write("Infile reading: "), nl,
 	inputFile(IF),
 	outputFile(OF).
 
-run:- 
+run :- 
 	input_output(IF, OF),
 	write("IO: "), nl,
 	write("\tReading from: "), 
