@@ -2,11 +2,66 @@ outputFile('.\\solved\\puzzle_00.txt').
 inputFile('.\\unsolved\\puzzle_00.txt').
 
 /********************* solving the puzzle */
-doSolve(P,P).
+doSolve(P, TB):-
+	transpose(P, TB),
+	checkLines(TB),
+	!.
+
+% TODO: Split lines into before and after a wall, recursion
+%!	checkLines(puzzle(size(_,_), board(B), tBoard(TB))) is det
+%	Checks if two lights are intersecting on its row or column
+checkLines(puzzle(size(_,_), board(B), tBoard(TB))):-
+	filterBoard(B, NB),
+	checkIntersection(NB),
+	filterBoard(TB, NTB),
+	checkIntersection(NTB),
+	!.
+
+checkIntersectionPos(Row, Col) :-
+	checkList(Row),
+	checkList(Col).
+
+checkIntersection(Board) :-
+	maplist(checkList, Board).
+
+checkList(B) :- checkList(B, _).
+checkList([], 0).
+checkList(['*'|T],C):-
+	checkList(T, D),
+	C is D+1,			% Increment counter
+	!,		
+	C < 2.				% Two lights are intersecting when this fails
+
+checkList([_|T], C) :- 
+	checkList(T, D),
+	C is D-D. % Reset counter, silly way due to instantiation
+
+%!  transpose(puzzle(size(X,Y), board(B)), puzzle(size(X,Y), board(B), tBoard(TB))).
+%   Transpose a matrix board
+transpose(puzzle(size(Row,Column), board(B)), puzzle(size(Row,Column), board(B), tBoard(TB))):-
+	trans(B, TB).
+trans([],[]).
+trans([[]|_], []):-!.
+trans([S|R], [L|L1]) :-
+    trans(S, R, L, M),
+    trans(M, L1).
+
+trans([], _,[],[]).
+trans([S1|S2], [], [S1|L1], [S2|M]):-
+    trans([], [], L1, M).
+trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
+    trans(R1, R2, L1, M).
+
+% TODO: Check if this can be abstracted so we can swap out the filter
+is_empty(Tile) :-  dif(Tile, '_').
+filterBoard(Board, NewBoard) :-
+	maplist(filterLine, Board, NewBoard).
+filterLine(Line, NewLine) :-
+	include(is_empty, Line, NewLine).
 
 /********************* writing the result */
-writeFullOutput(puzzle(size(X,Y), board(Grid))):- 
-	write("size "), write(X), write("X"), write(Y), nl,
+writeFullOutput(puzzle(size(Row,Col), board(Grid), tBoard(_))):- 
+	write("size "), write(Row), write("x"), write(Col), nl,
 	writeBoard(Grid).
 writeFullOutput(P):- write('Cannot solve puzzle: '), write(P), nl.
 
@@ -22,12 +77,12 @@ writeLine([Head|Tail]):-
 
 
 /********************** reading the input */
-readProblem(puzzle(size(X,Y), board(Grid))) :- 
+readProblem(puzzle(size(Row,Col), board(Grid))) :- 
 	findKW(size), 
-	readInt(X), 
-	readInt(Y), 
-	length(Grid, Y),
-	readGridLines(X,Grid).
+	readInt(Row), 
+	readInt(Col), 
+	length(Grid, Col),
+	readGridLines(Row,Grid).
 
 findKW(KW):- 
 	string_codes(KW,[H|T]), peek_code(H), readKW([H|T]), !.
@@ -73,11 +128,11 @@ readHintLine(N):-
 	readHintLine(N1).
 
 readLines(_,0).
-readLines(X,Y):- 
-	Y>0, 
-	Y1 is Y-1,
-	readHintLine(X), 
-	readLines(X,Y1).
+readLines(Row,Col):- 
+	Col>0, 
+	Col1 is Col-1,
+	readHintLine(Row), 
+	readLines(Row,Col1).
 
 
 readInt(N):- 
@@ -117,8 +172,6 @@ input_output(IF,OF):-
 input_output(IF,OF):- 
 	inputFile(IF),
 	outputFile(OF).
-	
-
 
 run :- 
 	input_output(IF, OF),
