@@ -2,7 +2,25 @@ outputFile('.\\solved\\puzzle_00.txt').
 inputFile('.\\unsolved\\puzzle_00.txt').
 
 /********************* solving the puzzle */
-doSolve(P,P).
+doSolve(P, S):-
+	transpose(P, S).
+
+
+temp(puzzle(size(X,Y), board(B)), puzzle(size(X,Y), board(B))).
+
+transpose(puzzle(size(X,Y), board(B)), puzzle(size(Y,X), board(TB))):-
+	trans(B, TB).
+trans([],[]).
+trans([[]|_], []):-!.
+trans([S|R], [L|L1]) :-
+    trans(S, R, L, M),
+    trans(M, L1).
+
+trans([], _,[],[]).
+trans([S1|S2], [], [S1|L1], [S2|M]):-
+    trans([], [], L1, M).
+trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
+    trans(R1, R2, L1, M).
 
 /********************* writing the result */
 writeFullOutput(puzzle(size(X,Y), board(Grid))):- 
