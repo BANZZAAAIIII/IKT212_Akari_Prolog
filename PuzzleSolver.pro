@@ -23,11 +23,11 @@ writeLine([Head|Tail]):-
 
 /********************** reading the input */
 readProblem(puzzle(size(X,Y), board(Grid))) :- 
-  findKW(size), 
-  readInt(X), 
-  readInt(Y), 
-  length(Grid, Y),
-  readGridLines(X,Grid).
+	findKW(size), 
+	readInt(X), 
+	readInt(Y), 
+	length(Grid, Y),
+	readGridLines(X,Grid).
 
 findKW(KW):- 
 	string_codes(KW,[H|T]), peek_code(H), readKW([H|T]), !.
@@ -45,9 +45,9 @@ readKW([H|T]):-
 
 readGridLines(_,[]).
 readGridLines(N,[H|T]):- 
-length(H,N), 
-readGridLine(H), 
-readGridLines(N,T).
+	length(H,N), 
+	readGridLine(H), 
+	readGridLines(N,T).
 
 readGridLine([]).
 readGridLine([E|T]):- 
@@ -67,17 +67,17 @@ whitespace(10). whitespace(12). whitespace(32).
 
 readHintLine(0).
 readHintLine(N):-
- N>0, 
- N1 is N-1, 
- get_code(_), 
- readHintLine(N1).
+	N>0, 
+	N1 is N-1, 
+	get_code(_), 
+	readHintLine(N1).
 
 readLines(_,0).
 readLines(X,Y):- 
-Y>0, 
-Y1 is Y-1,
-readHintLine(X), 
-readLines(X,Y1).
+	Y>0, 
+	Y1 is Y-1,
+	readHintLine(X), 
+	readLines(X,Y1).
 
 
 readInt(N):- 
@@ -139,11 +139,19 @@ run :-
 	seen,
 	!.
 	
-run:- 
+run :- 
 	told,
 	seen. /* close the files */
 
 solvePuzzles(0).
-solvePuzzles(N):- N>0, readProblem(P), doSolve(P, S), writeFullOutput(S), !, N1 is N-1, solvePuzzles(N1).
+solvePuzzles(N) :- 
+	N>0,
+	readProblem(P),
+	doSolve(P, S),
+	writeFullOutput(S),
+	!,
+	N1 is N-1,
+	solvePuzzles(N1).
+
 :- run.
 %:- halt.
