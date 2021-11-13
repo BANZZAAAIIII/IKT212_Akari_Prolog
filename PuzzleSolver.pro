@@ -22,6 +22,56 @@ trans([S1|S2], [], [S1|L1], [S2|M]):-
 trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
     trans(R1, R2, L1, M).
 
+
+
+% Checks that number constraint for all num tiles are correct 
+checkNums(puzzle(size(X, Y), board(B), trans(_)), CurrentX, CurrentY) :-
+    write("X: "), write(CurrentX), write(", "), write("Y: "), write(CurrentY), nl, 
+    getValue(B, CurrentY, CurrentX, V),
+	 write("V: "), write(CurrentX),
+	adjacentLights(B, V, CurrentX, CurrentY),
+	(CurrentX >= X -> 
+    	NextX is 1, NextY is CurrentY + 1 ; 
+    	NextX is CurrentX + 1, NextY = CurrentY
+    ),
+	checkNums(puzzle(size(X, Y), board(B), trans(_)), NextX, NextY).
+checkNums(puzzle(size(_, Y), board(_), trans(_)), _, CurrentY):-
+	not(CurrentY =< Y).
+
+
+getAdjacentPos(X, Y, R) :-
+   X1 is X - 1,
+   X2 is X + 1,
+   Y1 is Y - 1,
+   Y2 is Y + 1,
+   append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
+
+% Checks that nr of lights around a num tile is valid
+adjacentLights(Board, "1", X, Y):-
+    getAdjacentPos(X, Y, Pos),
+    write("Posses: "), write(Pos), nl,
+    checkAdjacent(Board, Pos).
+adjacentLights(_, _, _, _).
+
+checkPos(Board, [X|[Y|_]]) :-
+	(getValue(Board, X, Y, R) ->  
+    	write(R) 
+    ;   write("false") 
+    ).
+checkAdjacent(_, []).
+checkAdjacent(Board, [Pos|Posses]) :-
+    checkPos(Board, Pos),
+    checkAdjacent(Board, Posses).
+
+
+
+getValue(Board, RowNum, ColNum, Val) :- 
+    nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
+row(puzzle(size(_, _), board(B), trans(_)), N, Row) :-
+    nth1(N, B, Row).
+col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
+    row(puzzle(size(_, _), board(BT), trans(_)), N, Col).
+
 /********************* writing the result */
 writeFullOutput(puzzle(size(X,Y), board(Grid))):- 
 	write("size "), write(X), write("X"), write(Y), nl,
