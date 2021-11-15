@@ -5,6 +5,7 @@ inputFile('.\\unsolved\\puzzle_00.txt').
 doSolve(P, TB):-
 	transpose(P, TB),
 	checkLines(TB),
+	%checkNums(TB),
 	!.
 
 % TODO: Split lines into before and after a wall, recursion
@@ -61,11 +62,12 @@ filterLine(Line, NewLine) :-
 
 
 % Checks that number constraint for all num tiles are correct 
+checkNums(Board) :- checkNums(Board, 1, 1).
 checkNums(puzzle(size(X, Y), board(B), trans(_)), CurrentX, CurrentY) :-
     write("X: "), write(CurrentX), write(", "), write("Y: "), write(CurrentY), nl, 
     getValue(B, CurrentY, CurrentX, V),
-	 write("V: "), write(CurrentX),
-	adjacentLights(B, V, CurrentX, CurrentY),
+	write("V: "), write(V), nl,
+	checkCorrectNrOfLights(B, V, CurrentX, CurrentY),
 	(CurrentX >= X -> 
     	NextX is 1, NextY is CurrentY + 1 ; 
     	NextX is CurrentX + 1, NextY = CurrentY
@@ -75,34 +77,51 @@ checkNums(puzzle(size(_, Y), board(_), trans(_)), _, CurrentY):-
 	not(CurrentY =< Y).
 
 
-getAdjacentPos(X, Y, R) :-
-   X1 is X - 1,
-   X2 is X + 1,
-   Y1 is Y - 1,
-   Y2 is Y + 1,
-   append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
-
 % Checks that nr of lights around a num tile is valid
-adjacentLights(Board, "1", X, Y):-
-    getAdjacentPos(X, Y, Pos),
-    write("Posses: "), write(Pos), nl,
-    checkAdjacent(Board, Pos).
-adjacentLights(_, _, _, _).
+checkCorrectNrOfLights(Board, "4", X, Y):-
+	getAdjacentTiles(Board, X, Y, Tiles),
+    write("Tiles: "), write(Tiles), nl,
+    %checkAdjacent(Board, Pos).
+	% Check number constraint
+checkCorrectNrOfLights(_, "*", _, _).
+checkCorrectNrOfLights(_, "_", _, _).
+checkCorrectNrOfLights(_, _, _, _).
 
-checkPos(Board, [X|[Y|_]]) :-
-	(getValue(Board, X, Y, R) ->  
-    	write(R) 
-    ;   write("false") 
-    ).
-checkAdjacent(_, []).
-checkAdjacent(Board, [Pos|Posses]) :-
-    checkPos(Board, Pos),
-    checkAdjacent(Board, Posses).
+getAdjacentTiles(Board, X, Y, R) :-
+    getAdjacentPos(X, Y, PosList),
+    write("adjc: "), write(PosList), nl,
+	% Get Adjacent tiles
+	getTiles(Board, PosList, [], R),
+    write("Adjacent Tiles: "), write(R), nl.
 
+getTiles(_, [], _, _).
+getTiles(Board, [Pos|PosList], Start, Result) :-
+    getTiles(Board, PosList, Start, Result),
+    write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
+	checkPos(Board, Pos, R),
+	append(Start, [R], Result).
+
+getAdjacentPos(X, Y, R) :-
+	X1 is X - 1,
+	X2 is X + 1,
+	Y1 is Y - 1,
+	Y2 is Y + 1,
+	append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
+
+checkPos(Board, [X|[Y|_]], R) :-
+    write("check pos: "), write(X), write(" "), write(Y), nl,
+	getValue(Board, X, Y, R).
+checkPos(_, _, _):- write("blarg"), nl.
+
+
+countLights([],0).
+countLights(["*"|T],N) :- countLights(T,N1), N is N1 + 1.
+countLights([X|T],N) :- X \= 1, countLights(T,N).
 
 
 getValue(Board, RowNum, ColNum, Val) :- 
     nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
+
 row(puzzle(size(_, _), board(B), trans(_)), N, Row) :-
     nth1(N, B, Row).
 col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
@@ -255,5 +274,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-:- run.
+%:- run.
 %:- halt.
