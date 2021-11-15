@@ -1,11 +1,12 @@
 outputFile('.\\solved\\puzzle___.txt').
-inputFile('.\\unsolved\\puzzle_00.txt').
+inputFile('.\\unsolved\\test.txt').
 
 /********************* solving the puzzle */
 doSolve(P, TB):-
 	transpose(P, TB),
-	checkLines(TB),
-	%checkNums(TB),
+	!,
+	%checkLines(TB),
+	checkNums(TB),
 	!.
 
 % TODO: Split lines into before and after a wall, recursion
@@ -57,43 +58,43 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
 
 % Checks that number constraint for all num tiles are correct 
 checkNums(Board) :- checkNums(Board, 1, 1).
-checkNums(puzzle(size(X, Y), board(B), trans(_)), CurrentX, CurrentY) :-
-    write("X: "), write(CurrentX), write(", "), write("Y: "), write(CurrentY), nl, 
-    getValue(B, CurrentY, CurrentX, V),
+checkNums(puzzle(size(Col, Row), board(B), tBoard(_)), CurrentCol, CurrentRow) :-
+    write("Col: "), write(CurrentCol), write(", "), write("Row: "), write(CurrentRow), nl, 
+    getValue(B, CurrentRow, CurrentCol, V),
 	write("V: "), write(V), nl,
-	checkCorrectNrOfLights(B, V, CurrentX, CurrentY),
-	(CurrentX >= X -> 
-    	NextX is 1, NextY is CurrentY + 1 ; 
-    	NextX is CurrentX + 1, NextY = CurrentY
+	checkCorrectNrOfLights(B, V, CurrentCol, CurrentRow),
+	(CurrentCol >= Col -> 
+    	NextCol is 1, NextRow is CurrentRow + 1 ; 
+    	NextCol is CurrentCol + 1, NextRow = CurrentRow
     ),
-	checkNums(puzzle(size(X, Y), board(B), trans(_)), NextX, NextY).
-checkNums(puzzle(size(_, Y), board(_), trans(_)), _, CurrentY):-
+	checkNums(puzzle(size(Col, Row), board(B), tBoard(_)), NextCol, NextRow).
+checkNums(puzzle(size(_, Y), board(_), tBoard(_)), _, CurrentY):-
 	not(CurrentY =< Y).
 
 
 % Checks that nr of lights around a num tile is valid
-checkCorrectNrOfLights(Board, "4", X, Y):-
-	getAdjacentTiles(Board, X, Y, Tiles),
+checkCorrectNrOfLights(Board, 1, Col, Row):-
+	getAdjacentTiles(Board, Col, Row, Tiles),
     write("Tiles: "), write(Tiles), nl,
-    %checkAdjacent(Board, Pos).
-	% Check number constraint
-checkCorrectNrOfLights(_, "*", _, _).
-checkCorrectNrOfLights(_, "_", _, _).
+    countLights(Tiles, N),
+    write("Nr of lights: "), write(N), nl.
+checkCorrectNrOfLights(_, '*', _, _).
+checkCorrectNrOfLights(_, '_', _, _).
 checkCorrectNrOfLights(_, _, _, _).
+
 
 getAdjacentTiles(Board, X, Y, R) :-
     getAdjacentPos(X, Y, PosList),
-    write("adjc: "), write(PosList), nl,
-	% Get Adjacent tiles
-	getTiles(Board, PosList, [], R),
-    write("Adjacent Tiles: "), write(R), nl.
+    % write("adjc pos: "), write(PosList), nl,
+	getTiles(Board, PosList, R).
 
-getTiles(_, [], _, _).
-getTiles(Board, [Pos|PosList], Start, Result) :-
-    getTiles(Board, PosList, Start, Result),
-    write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
+getTiles(_, [], []).
+getTiles(Board, [Pos|PosList], Result) :-
+	getTiles(Board, PosList, Result1),
+	write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
 	checkPos(Board, Pos, R),
-	append(Start, [R], Result).
+	append(Result1, [R], Result).
+getTiles(_, _, _) :- write("asd").
 
 getAdjacentPos(X, Y, R) :-
 	X1 is X - 1,
@@ -102,24 +103,25 @@ getAdjacentPos(X, Y, R) :-
 	Y2 is Y + 1,
 	append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
 
-checkPos(Board, [X|[Y|_]], R) :-
-    write("check pos: "), write(X), write(" "), write(Y), nl,
-	getValue(Board, X, Y, R).
-checkPos(_, _, _):- write("blarg"), nl.
+checkPos(Board, [Col|[Row|_]], R) :-
+    write("check pos: "), write(Col), write(" "), write(Row), nl,
+	getValue(Board, Col, Row, R).
+checkPos(_, _, []).
 
 
 countLights([],0).
-countLights(["*"|T],N) :- countLights(T,N1), N is N1 + 1.
-countLights([X|T],N) :- X \= 1, countLights(T,N).
+countLights(["*"|T],N) :- countLights(T, N1), N is N1 + 1.
+countLights([X|T],N) :- X \= "*", countLights(T,N).
 
 
 getValue(Board, RowNum, ColNum, Val) :- 
     nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
 
-row(puzzle(size(_, _), board(B), trans(_)), N, Row) :-
+
+row(puzzle(size(_, _), board(B), tBoard(_)), N, Row) :-
     nth1(N, B, Row).
-col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
-    row(puzzle(size(_, _), board(BT), trans(_)), N, Col).
+col(puzzle(size(_, _), board(_), tBoard(BT)), N, Col) :-
+    row(puzzle(size(_, _), board(BT), tBoard(_)), N, Col).
 
 
 % TODO: Check if this can be abstracted so we can swap out the filter
