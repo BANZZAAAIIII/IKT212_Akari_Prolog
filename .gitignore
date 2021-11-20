@@ -2,3 +2,5 @@ launch.json
 .vscode/*
 .devcontainer/*
 test.pro
+solved/*
+solved/

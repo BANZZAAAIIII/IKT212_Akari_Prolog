@@ -16,7 +16,7 @@ placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(siz
 	!.
 
 % placeLight(?pos, ?List, ?List)
-placeLight(pos(RowNum,ColNum), Board, NewBoard) :- trace,
+placeLight(pos(RowNum,ColNum), Board, NewBoard) :-
 	getRow(Board, RowNum, Row),
 	getCol(Board, ColNum, Col),
 	getValue(Board, RowNum, ColNum, Val),
