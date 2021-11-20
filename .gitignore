@@ -3,3 +3,5 @@ launch.json
 .devcontainer/*
 .solved/
 test.pro
+solved/*
+solved/

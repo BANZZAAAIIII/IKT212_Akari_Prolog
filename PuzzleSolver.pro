@@ -2,12 +2,29 @@ outputFile('.\\solved\\puzzle___.txt').
 inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 /********************* solving the puzzle */
-doSolve(P, TB):-
+doSolve(P, S):-
 	transpose(P, TB),
 	!,
 	%checkLines(TB),
 	checkNums(TB),
+	%placeLightTemp(pos(1,1), TB, S),
 	!.
+
+
+% Temporary for showing placeLight works
+placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(size(Row,Col), board(NB), tBoard(TB))) :-
+	placeLight(pos(X,Y), B, NB),
+	!.
+
+% placeLight(?pos, ?List, ?List)
+placeLight(pos(RowNum,ColNum), Board, NewBoard) :-
+	getRow(Board, RowNum, Row),
+	getCol(Board, ColNum, Col),
+	getValue(Board, RowNum, ColNum, Val),
+	Val == '_',		% Check if tile is empty
+	setValue(Board, Row, RowNum, ColNum, '*', NewBoard),
+	checkIntersectionPos(Row, Col).
+
 
 % TODO: Split lines into before and after a wall, recursion
 %!	checkLines(puzzle(size(_,_), board(B), tBoard(TB))) is det
@@ -55,7 +72,6 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
     trans(R1, R2, L1, M).
 
 
-
 % Checks that number constraint for all num tiles are correct 
 checkNums(Board) :- checkNums(Board, 1, 1).
 checkNums(puzzle(size(Row, Col), board(B), tBoard(_)), CurrentRow, CurrentCol) :-
@@ -86,7 +102,7 @@ checkCorrectNrOfLights(Board, Num, Row, Col) :-
 	getAdjacentTiles(Board, Row, Col, Tiles),
     countLights(Tiles, N), !,
 	% write("Tiles: "), write(Tiles), nl,
-    % write("Nr of lights: "), write(Num), write(" of "), write(N), nl,
+    write("Nr of lights: "), write(Num), write(" of "), write(N), nl,
 	N = Num.
 checkCorrectNrOfLights(_, '*', _, _).
 checkCorrectNrOfLights(_, '_', _, _).
@@ -113,6 +129,7 @@ getAdjacentPos(X, Y, R) :-
 	Y2 is Y + 1,
 	append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
 
+
 checkPos(Board, [Col|[Row|_]], R) :-
     % write("check pos: "), write(Col), write(" "), write(Row), nl,
 	getValue(Board, Col, Row, R).
@@ -124,14 +141,32 @@ countLights(['*'|T],N) :- countLights(T, N1), N is N1 + 1.
 countLights([X|T],N) :- X \= '*', countLights(T,N).
 
 
+replace_nth1(List, Index, NewElem, NewList) :-
+	% predicate works forward: Index,List -> OldElem, Transfer
+	nth1(Index,List,_,Transfer),
+	% predicate works backwards: Index,NewElem,Transfer -> NewList
+	nth1(Index,NewList,NewElem,Transfer).
+
+setValue(Board, Row, RowNum, ColNum, Val, NewBoard) :-
+	replace_nth1(Row, ColNum, Val, NewRow), 
+	replace_nth1(Board, RowNum, NewRow, NewBoard).
+
+
+
 getValue(Board, RowNum, ColNum, Val) :- 
     nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
 
 
-row(puzzle(size(_, _), board(B), tBoard(_)), N, Row) :-
+row(puzzle(size(_,_), board(B), tBoard(_)), N, Row) :-
     nth1(N, B, Row).
-col(puzzle(size(_, _), board(_), tBoard(BT)), N, Col) :-
-    row(puzzle(size(_, _), board(BT), tBoard(_)), N, Col).
+col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
+    row(puzzle(size(_, _), board(BT), trans(_)), N, Col).
+
+getRow(B, N, R) :-
+	nth1(N, B, R).
+getCol(B, N, R) :-
+	trans(B, TB),
+	getRow(TB, N, R).
 
 
 % TODO: Check if this can be abstracted so we can swap out the filter

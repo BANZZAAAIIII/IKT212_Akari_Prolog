@@ -1,34 +1,13 @@
-puzzles 1
-Col: 1, Row: 1
-V: 1
-Pos: [1,2], List: []
-check pos: 1 2
-Pos: [1,0], List: [[1,2]]
-check pos: 1 0
-Pos: [2,1], List: [[1,0],[1,2]]
-check pos: 2 1
-Pos: [0,1], List: [[2,1],[1,0],[1,2]]
-check pos: 0 1
-Tiles: [2,[],4,[]]
-Nr of lights: 0
-Col: 2, Row: 1
-V: 2
-Col: 3, Row: 1
-V: 3
-Col: 1, Row: 2
-V: 4
-Col: 2, Row: 2
-V: 5
-Col: 3, Row: 2
-V: 6
-Col: 1, Row: 3
-V: 7
-Col: 2, Row: 3
-V: 8
-Col: 3, Row: 3
-V: 9
-Col: 1, Row: 4
-size 3x3
-123
-456
-789
+puzzles 2
+Nr of lights: 4 of 4
+Nr of lights: 2 of 2
+size 4x6
+**__
+*4*_
+X*__
+*___
+2X_*
+*___
+Nr of lights: 2 of 2
+Nr of lights: 2 of 2
+Nr of lights: 2 of 2
