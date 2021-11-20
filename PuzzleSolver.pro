@@ -1,12 +1,13 @@
-outputFile('.\\solved\\puzzle_00.txt').
-inputFile('.\\unsolved\\puzzle_00.txt').
+outputFile('.\\solved\\puzzle___.txt').
+inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 /********************* solving the puzzle */
 doSolve(P, S):-
 	transpose(P, TB),
-	checkLines(TB),
-	%checkNums(TB),
-	placeLightTemp(pos(1,1), TB, S),
+	!,
+	%checkLines(TB),
+	checkNums(TB),
+	%placeLightTemp(pos(1,1), TB, S),
 	!.
 
 
@@ -73,43 +74,53 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
 
 % Checks that number constraint for all num tiles are correct 
 checkNums(Board) :- checkNums(Board, 1, 1).
-checkNums(puzzle(size(X, Y), board(B), tBoard(_)), CurrentX, CurrentY) :-
-    write("X: "), write(CurrentX), write(", "), write("Y: "), write(CurrentY), nl, 
-    getValue(B, CurrentY, CurrentX, V),
-	write("V: "), write(V), nl,  
-	checkCorrectNrOfLights(B, V, CurrentX, CurrentY),
-	(CurrentX >= X -> 
-    	NextX is 1, NextY is CurrentY + 1 ; 
-    	NextX is CurrentX + 1, NextY = CurrentY
+checkNums(puzzle(size(Row, Col), board(B), tBoard(_)), CurrentRow, CurrentCol) :-
+    %write("Row: "), write(CurrentRow), write(", "), write("Col: "), write(CurrentCol), nl, 
+    getValue(B, CurrentCol, CurrentRow, V),
+	%write("V: "), write(V), nl,
+	checkIfNum(B, V, CurrentCol, CurrentRow), 
+	(CurrentRow >= Row -> 
+    	NextRow is 1, NextCol is CurrentCol + 1 ; 
+    	NextRow is CurrentRow + 1, NextCol = CurrentCol
     ),
-	checkNums(puzzle(size(X, Y), board(B), trans(_)), NextX, NextY).
-checkNums(puzzle(size(_, Y), board(_), trans(_)), _, CurrentY):-
+	checkNums(puzzle(size(Row, Col), board(B), tBoard(_)), NextRow, NextCol).
+checkNums(puzzle(size(_, Y), board(_), tBoard(_)), _, CurrentY):-
 	not(CurrentY =< Y).
 
 
+
+checkIfNum(Board, Num, Row, Col) :-
+	% write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl, 
+	(integer(Num) -> % We only want to check if the tile is a number
+    	% nl, 
+		checkCorrectNrOfLights(Board, Num, Row, Col) ; 
+    	true
+    ).
+
 % Checks that nr of lights around a num tile is valid
-checkCorrectNrOfLights(Board, "4", X, Y):-
-	getAdjacentTiles(Board, X, Y, Tiles),
-    write("Tiles: "), write(Tiles), nl.
-    %checkAdjacent(Board, Pos).
-	% Check number constraint
-checkCorrectNrOfLights(_, "*", _, _).
-checkCorrectNrOfLights(_, "_", _, _).
+checkCorrectNrOfLights(Board, Num, Row, Col) :-
+	getAdjacentTiles(Board, Row, Col, Tiles),
+    countLights(Tiles, N), !,
+	% write("Tiles: "), write(Tiles), nl,
+    write("Nr of lights: "), write(Num), write(" of "), write(N), nl,
+	N = Num.
+checkCorrectNrOfLights(_, '*', _, _).
+checkCorrectNrOfLights(_, '_', _, _).
 checkCorrectNrOfLights(_, _, _, _).
+
 
 getAdjacentTiles(Board, X, Y, R) :-
     getAdjacentPos(X, Y, PosList),
-    write("adjc: "), write(PosList), nl,
-	% Get Adjacent tiles
-	getTiles(Board, PosList, [], R),
-    write("Adjacent Tiles: "), write(R), nl.
+    % write("adjc pos: "), write(PosList), nl,
+	getTiles(Board, PosList, R).
 
-getTiles(_, [], _, _).
-getTiles(Board, [Pos|PosList], Start, Result) :- 
-    getTiles(Board, PosList, Start, Result),
-    write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
+getTiles(_, [], []).
+getTiles(Board, [Pos|PosList], Result) :-
+	getTiles(Board, PosList, Result1),
+	% write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
 	checkPos(Board, Pos, R),
-	append(Start, [R], Result).
+	append(Result1, [R], Result).
+getTiles(_, _, _).
 
 getAdjacentPos(X, Y, R) :-
 	X1 is X - 1,
@@ -118,15 +129,16 @@ getAdjacentPos(X, Y, R) :-
 	Y2 is Y + 1,
 	append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
 
-checkPos(Board, [X|[Y|_]], R) :-
-    write("check pos: "), write(X), write(" "), write(Y), nl,
-	getValue(Board, X, Y, R).
-checkPos(_, _, _):- write("blarg"), nl.
+
+checkPos(Board, [Col|[Row|_]], R) :-
+    % write("check pos: "), write(Col), write(" "), write(Row), nl,
+	getValue(Board, Col, Row, R).
+checkPos(_, _, []).
 
 
 countLights([],0).
-countLights(["*"|T],N) :- countLights(T,N1), N is N1 + 1.
-countLights([X|T],N) :- X \= 1, countLights(T,N).
+countLights(['*'|T],N) :- countLights(T, N1), N is N1 + 1.
+countLights([X|T],N) :- X \= '*', countLights(T,N).
 
 
 replace_nth1(List, Index, NewElem, NewList) :-
@@ -138,6 +150,7 @@ replace_nth1(List, Index, NewElem, NewList) :-
 setValue(Board, Row, RowNum, ColNum, Val, NewBoard) :-
 	replace_nth1(Row, ColNum, Val, NewRow), 
 	replace_nth1(Board, RowNum, NewRow, NewBoard).
+
 
 
 getValue(Board, RowNum, ColNum, Val) :- 
@@ -154,6 +167,7 @@ getRow(B, N, R) :-
 getCol(B, N, R) :-
 	trans(B, TB),
 	getRow(TB, N, R).
+
 
 % TODO: Check if this can be abstracted so we can swap out the filter
 is_empty(Tile) :-  dif(Tile, '_').
@@ -309,5 +323,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-:- run.
+%:- run.
 %:- halt.

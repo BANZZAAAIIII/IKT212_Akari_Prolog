@@ -1,0 +1,18 @@
+puzzles 2
+size 4x6
+_*__
+*4*_
+X*__
+*___
+2X_*
+*___
+size 4x9
+XX_X
+X2*_
+2*XX
+*XXX
+_XX*
+XXXX
+XX_*
+__*_
+_*2X

@@ -1,6 +1,7 @@
 launch.json
 .vscode/*
 .devcontainer/*
+.solved/
 test.pro
 solved/*
 solved/

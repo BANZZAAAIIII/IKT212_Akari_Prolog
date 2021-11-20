@@ -1,0 +1,13 @@
+puzzles 2
+Nr of lights: 4 of 4
+Nr of lights: 2 of 2
+size 4x6
+**__
+*4*_
+X*__
+*___
+2X_*
+*___
+Nr of lights: 2 of 2
+Nr of lights: 2 of 2
+Nr of lights: 2 of 2
