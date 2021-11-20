@@ -1,8 +1,8 @@
-outputFile('.\\solved\\puzzle___.txt').
+outputFile('.\\solved\\puzzle_00.txt').
 inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 /********************* solving the puzzle */
-doSolve(P, S):-
+doSolve(P, TB):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	transpose(P, TB),
 	!,
 	%checkLines(TB),
@@ -12,18 +12,22 @@ doSolve(P, S):-
 
 
 % Temporary for showing placeLight works
-placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(size(Row,Col), board(NB), tBoard(TB))) :-
-	placeLight(pos(X,Y), B, NB),
+placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(size(Row,Col), board(B), tBoard(TB))) :-
+	placeLight(pos(X,Y), B),
 	!.
 
 % placeLight(?pos, ?List, ?List)
-placeLight(pos(RowNum,ColNum), Board, NewBoard) :-
+placeLight(pos(RowNum,ColNum), Board) :-
 	getRow(Board, RowNum, Row),
-	getCol(Board, ColNum, Col),
-	getValue(Board, RowNum, ColNum, Val),
-	Val == '_',		% Check if tile is empty
-	setValue(Board, Row, RowNum, ColNum, '*', NewBoard),
-	checkIntersectionPos(Row, Col).
+	getCol(Board, ColNum, Col), 
+	getValue(Board, RowNum, ColNum, Val), trace,
+	%Val == '_',		% Check if tile is empty
+	var(Val),
+	!,
+	Val = '*',
+	%setValue(Board, Row, RowNum, ColNum, '*', NewBoard),
+	%checkIntersectionPos(Row, Col).
+	!.
 
 
 % TODO: Split lines into before and after a wall, recursion
@@ -87,12 +91,10 @@ checkNums(puzzle(size(Row, Col), board(B), tBoard(_)), CurrentRow, CurrentCol) :
 checkNums(puzzle(size(_, Y), board(_), tBoard(_)), _, CurrentY):-
 	not(CurrentY =< Y).
 
-
-
-checkIfNum(Board, Num, Row, Col) :-
+checkIfNum(Board, Num, Row, Col) :- 
 	% write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl, 
 	(integer(Num) -> % We only want to check if the tile is a number
-    	% nl, 
+    	% nl,
 		checkCorrectNrOfLights(Board, Num, Row, Col) ; 
     	true
     ).
@@ -102,11 +104,11 @@ checkCorrectNrOfLights(Board, Num, Row, Col) :-
 	getAdjacentTiles(Board, Row, Col, Tiles),
     countLights(Tiles, N), !,
 	% write("Tiles: "), write(Tiles), nl,
-    write("Nr of lights: "), write(Num), write(" of "), write(N), nl,
-	N = Num.
-checkCorrectNrOfLights(_, '*', _, _).
-checkCorrectNrOfLights(_, '_', _, _).
-checkCorrectNrOfLights(_, _, _, _).
+    %write("Nr of lights: "), write(Num), write(" of "), write(N), nl,
+	N == Num.
+%checkCorrectNrOfLights(_, '*', _, _).
+%checkCorrectNrOfLights(_, '_', _, _).
+%checkCorrectNrOfLights(_, _, _, _).
 
 
 getAdjacentTiles(Board, X, Y, R) :-
@@ -117,10 +119,12 @@ getAdjacentTiles(Board, X, Y, R) :-
 getTiles(_, [], []).
 getTiles(Board, [Pos|PosList], Result) :-
 	getTiles(Board, PosList, Result1),
-	% write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
+	%write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
 	checkPos(Board, Pos, R),
+	not(var(R)),
+	!,
 	append(Result1, [R], Result).
-getTiles(_, _, _).
+%getTiles(_, _, _).
 
 getAdjacentPos(X, Y, R) :-
 	X1 is X - 1,
@@ -165,7 +169,7 @@ col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
 getRow(B, N, R) :-
 	nth1(N, B, R).
 getCol(B, N, R) :-
-	trans(B, TB),
+	trans(B, TB), 
 	getRow(TB, N, R).
 
 
@@ -177,9 +181,11 @@ filterLine(Line, NewLine) :-
 	include(is_empty, Line, NewLine).
 
 /********************* writing the result */
-writeFullOutput(puzzle(size(Row,Col), board(Grid), tBoard(_))):- 
+writeFullOutput(puzzle(size(Row,Col), board(Grid), tBoard(TB))):- 
 	write("size "), write(Row), write("x"), write(Col), nl,
-	writeBoard(Grid).
+	writeBoard(Grid), nl,
+	write("size "), write(Col), write("x"), write(Row), nl,
+	writeBoard(TB).
 writeFullOutput(P):- write('Cannot solve puzzle: '), write(P), nl.
 
 writeBoard([]).
@@ -189,7 +195,10 @@ writeBoard([H|T]):-
 
 writeLine([]):- nl.
 writeLine([Head|Tail]):- 
-	write(Head),
+	(var(Head) ->
+		write('_');
+		write(Head)
+	),
 	writeLine(Tail).
 
 
@@ -229,11 +238,9 @@ readGridLine([E|T]):-
 	readGridLine(T).
 
 translate(-1,'ERROR: EOF').
-translate(63,_).
+translate(95, A).
 translate(X,E):- whitespace(X), get_code(Y), translate(Y,E).
 translate(X,E):- name(E,[X]).
-
-
 whitespace(10). whitespace(12). whitespace(32).
 
 
@@ -314,7 +321,7 @@ run :-
 	seen. /* close the files */
 
 solvePuzzles(0).
-solvePuzzles(N) :- 
+solvePuzzles(N) :-
 	N>0,
 	readProblem(P),
 	doSolve(P, S),
@@ -323,5 +330,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-%:- run.
+:- run.
 %:- halt.
