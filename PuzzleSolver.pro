@@ -2,12 +2,12 @@ outputFile('.\\solved\\puzzle_00.txt').
 inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 /********************* solving the puzzle */
-doSolve(P, TB):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
-	transpose(P, TB),
+doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
+	setupBoard(InitialBoard, Board),
 	!,
-	%checkLines(TB),
-	checkNums(TB),
-	%placeLightTemp(pos(1,1), TB, S),
+	checkLines(Board),
+	checkNums(Board),
+	placeLightTemp(pos(1,1), Board, S),
 	!.
 
 
@@ -19,7 +19,7 @@ placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(siz
 % placeLight(?pos, ?List, ?List)
 placeLight(pos(RowNum,ColNum), Board) :-
 	getRow(Board, RowNum, Row),
-	getCol(Board, ColNum, Col), 
+	getCol(Board, ColNum, Col),
 	getValue(Board, RowNum, ColNum, Val), trace,
 	%Val == '_',		% Check if tile is empty
 	var(Val),
@@ -52,51 +52,35 @@ checkList([], 0).
 checkList(['*'|T],C):-
 	checkList(T, D),
 	C is D+1,			% Increment counter
-	!,		
+	!,
 	C < 2.				% Two lights are intersecting when this fails
 
-checkList([_|T], C) :- 
+checkList([_|T], C) :-
 	checkList(T, D),
 	C is D-D. % Reset counter, silly way due to instantiation
 
-%!  transpose(puzzle(size(X,Y), board(B)), puzzle(size(X,Y), board(B), tBoard(TB))).
-%   Transpose a matrix board
-transpose(puzzle(size(Row,Column), board(B)), puzzle(size(Row,Column), board(B), tBoard(TB))):-
-	trans(B, TB).
-trans([],[]).
-trans([[]|_], []):-!.
-trans([S|R], [L|L1]) :-
-    trans(S, R, L, M),
-    trans(M, L1).
 
-trans([], _,[],[]).
-trans([S1|S2], [], [S1|L1], [S2|M]):-
-    trans([], [], L1, M).
-trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
-    trans(R1, R2, L1, M).
-
-
-% Checks that number constraint for all num tiles are correct 
+% Checks that number constraint for all num tiles are correct
 checkNums(Board) :- checkNums(Board, 1, 1).
-checkNums(puzzle(size(Row, Col), board(B), tBoard(_)), CurrentRow, CurrentCol) :-
-    %write("Row: "), write(CurrentRow), write(", "), write("Col: "), write(CurrentCol), nl, 
+checkNums(puzzle(size(Row, Col), board(B), tBoard(_), lines(_), walls(_)), CurrentRow, CurrentCol) :-
+    %write("Row: "), write(CurrentRow), write(", "), write("Col: "), write(CurrentCol), nl,
     getValue(B, CurrentCol, CurrentRow, V),
 	%write("V: "), write(V), nl,
-	checkIfNum(B, V, CurrentCol, CurrentRow), 
-	(CurrentRow >= Row -> 
-    	NextRow is 1, NextCol is CurrentCol + 1 ; 
-    	NextRow is CurrentRow + 1, NextCol = CurrentCol
+	checkIfNum(B, V, CurrentCol, CurrentRow),
+	(CurrentRow >= Row ->
+	NextRow is 1, NextCol is CurrentCol + 1 ;
+	NextRow is CurrentRow + 1, NextCol = CurrentCol
     ),
-	checkNums(puzzle(size(Row, Col), board(B), tBoard(_)), NextRow, NextCol).
-checkNums(puzzle(size(_, Y), board(_), tBoard(_)), _, CurrentY):-
+	checkNums(puzzle(size(Row, Col), board(B), tBoard(_), lines(_), walls(_)), NextRow, NextCol).
+checkNums(puzzle(size(_, Y), board(_), tBoard(_), lines(_), walls(_)), _, CurrentY):-
 	not(CurrentY =< Y).
 
-checkIfNum(Board, Num, Row, Col) :- 
-	% write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl, 
+checkIfNum(Board, Num, Row, Col) :-
+	% write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl,
 	(integer(Num) -> % We only want to check if the tile is a number
-    	% nl,
-		checkCorrectNrOfLights(Board, Num, Row, Col) ; 
-    	true
+	% nl,
+		checkCorrectNrOfLights(Board, Num, Row, Col) ;
+	true
     ).
 
 % Checks that nr of lights around a num tile is valid
@@ -106,9 +90,6 @@ checkCorrectNrOfLights(Board, Num, Row, Col) :-
 	% write("Tiles: "), write(Tiles), nl,
     %write("Nr of lights: "), write(Num), write(" of "), write(N), nl,
 	N == Num.
-%checkCorrectNrOfLights(_, '*', _, _).
-%checkCorrectNrOfLights(_, '_', _, _).
-%checkCorrectNrOfLights(_, _, _, _).
 
 
 getAdjacentTiles(Board, X, Y, R) :-
@@ -124,7 +105,6 @@ getTiles(Board, [Pos|PosList], Result) :-
 	not(var(R)),
 	!,
 	append(Result1, [R], Result).
-%getTiles(_, _, _).
 
 getAdjacentPos(X, Y, R) :-
 	X1 is X - 1,
@@ -152,24 +132,24 @@ replace_nth1(List, Index, NewElem, NewList) :-
 	nth1(Index,NewList,NewElem,Transfer).
 
 setValue(Board, Row, RowNum, ColNum, Val, NewBoard) :-
-	replace_nth1(Row, ColNum, Val, NewRow), 
+	replace_nth1(Row, ColNum, Val, NewRow),
 	replace_nth1(Board, RowNum, NewRow, NewBoard).
 
 
 
-getValue(Board, RowNum, ColNum, Val) :- 
+getValue(Board, RowNum, ColNum, Val) :-
     nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
 
 
-row(puzzle(size(_,_), board(B), tBoard(_)), N, Row) :-
+row(puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_)), N, Row) :-
     nth1(N, B, Row).
 col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
-    row(puzzle(size(_, _), board(BT), trans(_)), N, Col).
+    row(puzzle(size(_, _), board(BT), trans(_), lines(_), walls(_)), N, Col).
 
 getRow(B, N, R) :-
 	nth1(N, B, R).
 getCol(B, N, R) :-
-	trans(B, TB), 
+	trans(B, TB),
 	getRow(TB, N, R).
 
 
@@ -180,8 +160,44 @@ filterBoard(Board, NewBoard) :-
 filterLine(Line, NewLine) :-
 	include(is_empty, Line, NewLine).
 
+
+/********************* Setting Up the puzzle */
+% Transforms board to include addisional datastructures
+% Board    -  puzzle(size(Row,Col), board(B)
+% NewBoard -  puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
+setupBoard(Board, NewBoard):-
+	transpose(Board, TransBoard),
+	setupLines(TransBoard, LinesBoard),
+	setupNums(LinesBoard, NewBoard).
+
+
+setupLines(puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(_))).
+
+
+
+setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(_)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(_), walls(_))).
+
+
+
+%!  transpose(puzzle(size(X,Y), board(B)), puzzle(size(X,Y), board(B), tBoard(TB))).
+%   Transpose a matrix board
+transpose(puzzle(size(Row,Column), board(B)), puzzle(size(Row,Column), board(B), tBoard(TB))):-
+	trans(B, TB).
+trans([],[]).
+trans([[]|_], []):-!.
+trans([S|R], [L|L1]) :-
+    trans(S, R, L, M),
+    trans(M, L1).
+
+trans([], _,[],[]).
+trans([S1|S2], [], [S1|L1], [S2|M]):-
+    trans([], [], L1, M).
+trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
+    trans(R1, R2, L1, M).
+
+
 /********************* writing the result */
-writeFullOutput(puzzle(size(Row,Col), board(Grid), tBoard(TB))):- 
+writeFullOutput(puzzle(size(Row,Col), board(Grid), tBoard(TB), lines(_), walls(_))):-
 	write("size "), write(Row), write("x"), write(Col), nl,
 	writeBoard(Grid), nl,
 	write("size "), write(Col), write("x"), write(Row), nl,
@@ -194,7 +210,7 @@ writeBoard([H|T]):-
 	writeBoard(T).
 
 writeLine([]):- nl.
-writeLine([Head|Tail]):- 
+writeLine([Head|Tail]):-
 	(var(Head) ->
 		write('_');
 		write(Head)
@@ -203,38 +219,38 @@ writeLine([Head|Tail]):-
 
 
 /********************** reading the input */
-readProblem(puzzle(size(Row,Col), board(Grid))) :- 
-	findKW(size), 
-	readInt(Row), 
-	readInt(Col), 
+readProblem(puzzle(size(Row,Col), board(Grid))) :-
+	findKW(size),
+	readInt(Row),
+	readInt(Col),
 	length(Grid, Col),
 	readGridLines(Row,Grid).
 
-findKW(KW):- 
+findKW(KW):-
 	string_codes(KW,[H|T]), peek_code(H), readKW([H|T]), !.
-findKW(_):- 
+findKW(_):-
 	peek_code(-1), !, fail.
-findKW(KW):- 
+findKW(KW):-
 	get_code(_), findKW(KW).
 
 
-readKW([]):- 
+readKW([]):-
 	get_code(_).
-readKW([H|T]):- 
+readKW([H|T]):-
 	get_code(H), readKW(T).
 
 
 readGridLines(_,[]).
-readGridLines(N,[H|T]):- 
-	length(H,N), 
-	readGridLine(H), 
+readGridLines(N,[H|T]):-
+	length(H,N),
+	readGridLine(H),
 	readGridLines(N,T).
 
 readGridLine([]).
-readGridLine([E|T]):- 
-	get_code(M), 
-	translate(M,E), 
-	!, 
+readGridLine([E|T]):-
+	get_code(M),
+	translate(M,E),
+	!,
 	readGridLine(T).
 
 translate(-1,'ERROR: EOF').
@@ -246,36 +262,36 @@ whitespace(10). whitespace(12). whitespace(32).
 
 readHintLine(0).
 readHintLine(N):-
-	N>0, 
-	N1 is N-1, 
-	get_code(_), 
+	N>0,
+	N1 is N-1,
+	get_code(_),
 	readHintLine(N1).
 
 readLines(_,0).
-readLines(Row,Col):- 
-	Col>0, 
+readLines(Row,Col):-
+	Col>0,
 	Col1 is Col-1,
-	readHintLine(Row), 
+	readHintLine(Row),
 	readLines(Row,Col1).
 
 
-readInt(N):- 
+readInt(N):-
 	get_code(M),
 	handleCode(M,N).
 
 
-handleCode(M,N):- 
+handleCode(M,N):-
 	is_number_code(M,N1),
 	!,
 	continueInt(N1,N).
-handleCode(-1,_):- 
-	!, 
+handleCode(-1,_):-
+	!,
 	fail. /* EOF */
-handleCode(_,N):- 
+handleCode(_,N):-
 	readInt(N).
 
 
-continueInt(O,N):- 
+continueInt(O,N):-
 	get_code(M),
 	is_number_code(M,M1),
 	!,
@@ -284,39 +300,35 @@ continueInt(O,N):-
 continueInt(N,N).
 
 
-is_number_code(N, N1):- 
+is_number_code(N, N1):-
 	N>=48,
 	N<58,
 	N1 is N-48.
 is_number_code(95,0).
 
 /*********************** global control: starting the algorithm and the reading */
-input_output(IF,OF):- 
+input_output(IF,OF):-
 	current_prolog_flag(argv, ["--io",IF,OF]), !.
-input_output(IF,OF):- 
+input_output(IF,OF):-
 	inputFile(IF),
 	outputFile(OF).
 
-run :- 
+run :-
 	input_output(IF, OF),
 	write("IO: "), nl,
-	write("\tReading from: "), 
-	write(IF), nl,
-	write("\twriting to: "), 
-	write(OF), nl, 
-	see(IF), 
-	tell(OF), 
-	findKW(puzzles), 
+	write("\tReading from: "), write(IF), nl,
+	write("\twriting to: "), write(OF), nl,
+	see(IF),
+	tell(OF),
+	findKW(puzzles),
 	readInt(N),
-	write('puzzles '),
-	write(N),
-	nl, 
-	solvePuzzles(N), 
-	told, 
+	write('puzzles '), write(N), nl,
+	solvePuzzles(N),
+	told,
 	seen,
 	!.
-	
-run :- 
+
+run :-
 	told,
 	seen. /* close the files */
 
