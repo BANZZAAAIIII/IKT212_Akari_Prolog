@@ -1,5 +1,5 @@
 outputFile('.\\solved\\puzzle_00.txt').
-inputFile('.\\unsolved\\puzzleSolved_02.txt').
+inputFile('.\\unsolved\\puzzle_02.txt').
 
 
 
@@ -22,9 +22,9 @@ placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(siz
 
 % placeLight(?pos, ?List, ?List)
 placeLight(pos(RowNum,ColNum), Board) :-
-	getRow(Board, RowNum, Row),
-	getCol(Board, ColNum, Col),
-	getValue(Board, RowNum, ColNum, Val), trace,
+	% getRow(Board, RowNum, Row),
+	% getCol(Board, ColNum, Col),
+	getValue(Board, RowNum, ColNum, Val),
 	%Val == '_',		% Check if tile is empty
 	var(Val),
 	!,
@@ -61,6 +61,14 @@ checkList(['*'|T],C):-
 checkList([_|T], C) :-
 	checkList(T, D),
 	C is D-D. % Reset counter, silly way due to instantiation
+
+% TODO: Check if this can be abstracted so we can swap out the filter
+is_empty(Tile) :-  dif(Tile, '_').
+filterBoard(Board, NewBoard) :-
+	maplist(filterLine, Board, NewBoard).
+filterLine(Line, NewLine) :-
+	include(is_empty, Line, NewLine).
+
 
 % Checks that number constraint for all num tiles are correct
 checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(W))):- 
@@ -109,14 +117,6 @@ getCol(B, N, R) :-
 	trans(B, TB),
 	getRow(TB, N, R).
 
-% TODO: Check if this can be abstracted so we can swap out the filter
-is_empty(Tile) :-  dif(Tile, '_').
-filterBoard(Board, NewBoard) :-
-	maplist(filterLine, Board, NewBoard).
-filterLine(Line, NewLine) :-
-	include(is_empty, Line, NewLine).
-
-
 
 /***********************************************/
 /********************* Setting Up the puzzle **/
@@ -130,9 +130,47 @@ setupBoard(Board, NewBoard):-
 	setupNums(LinesBoard, NewBoard).
 
 
-setupLines(puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(_))).
+setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(L))) :-
+	findLines(B, Col, Row, Col, Row, Line, Lines),
+	append(Lines, [Line], Result),
+	% findLines(TB, Row, Col, Row, Col, TLine, TLines),
+	% append(TLines, [TLine], TResult),
+	% append(Result, TResult, L),
+	write(Result),
+	!.
 
 
+findLines(Board, _, _, 1, 1, Line, Lines):-
+	getValue(Board, 1, 1, Val),
+	write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), write(", Line: "), write(Line), write(", Lines: "), write(Lines), nl,
+	(var(Val) ->
+		Line = [Val];
+		Line = []
+	),
+	Lines = [].
+
+findLines(Board, Col, Row, 1, CurrentRow, Line, Lines):-
+	R1 is CurrentRow - 1,
+	findLines(Board, Col, Row, Col, R1, Line1, Lines1),
+	getValue(Board, CurrentRow, 1, Val),
+	write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), write(", Line: "), write(Line1), write(", Lines: "), write(Lines1), nl,
+	append(Lines1, [Line1], Lines), % Add last rows line group to lines
+	(var(Val) -> 
+		append([], [Val], Line);
+		Line = []
+	).
+	%write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
+findLines(Board, Col, Row, CurrentCol, CurrentRow, Line, Lines):-
+	C1 is CurrentCol - 1,
+	findLines(Board, Col, Row, C1, CurrentRow, Line1, Lines1),
+	getValue(Board, CurrentRow, CurrentCol, Val),
+	write("Col: "), write(CurrentCol), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), write(", Line: "), write(Line1), write(", Lines: "), write(Lines1), nl,
+	(var(Val) ->
+		append(Line1, [Val], Line),
+		Lines = Lines1;
+		append(Lines1, [Line1], Lines),
+		Line = []
+	).
 
 % Adds walls(W) to the datastructure
 % This countains a list of all number walls with its adjacent tiles
@@ -358,8 +396,8 @@ run :-
 	seen. /* close the files */
 
 solvePuzzles(0).
-solvePuzzles(N) :-
-	N>0,
+solvePuzzles(N) :- 
+	N>0, 
 	readProblem(P),
 	doSolve(P, S),
 	writeFullOutput(S),
@@ -367,5 +405,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-%:- run.
+:- run.
 %:- halt.
