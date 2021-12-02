@@ -7,21 +7,16 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 /********************* solving the puzzle **/
 /******************************************/
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
-	setupBoard(InitialBoard, Board),
+	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))
 	!, 
 	checkLines(Board),
 	% checkNums(Board),
 	placeLight(pos(1,4), Board),
 	!.
 
-
-% Temporary for showing placeLight works
-placeLightTemp(pos(Col,Row), puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_)), puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_))) :-
-	placeLight(pos(Col,Row), B),
-	!.
-
+% Don't think this one is needed anymore, just 
 % placeLight(?pos, ?List, ?List)
-placeLight(pos(ColNum,RowNum), puzzle(size(_,_), board(B), tBoard(_), lines(L), walls(_))) :-
+placeLight(pos(ColNum,RowNum), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))) :-
 	% getRow(Board, RowNum, Row),
 	% getCol(Board, ColNum, Col),
 	getValue(B, RowNum, ColNum, Val),
@@ -32,7 +27,7 @@ placeLight(pos(ColNum,RowNum), puzzle(size(_,_), board(B), tBoard(_), lines(L), 
 
 
 % Checks all the line groups and fails if one has more than 1 light
-checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls))) :- 
+checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))) :- 
 	maplist(countLights, L).
 
 countLights(Line) :-
@@ -114,7 +109,7 @@ setupBoard(Board, NewBoard):-
 	!.
 
 
-setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls))) :-
+setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(SolvedBoard))) :-
 	createSolverMatrix(Col, Row, SolverBoard),
 	createSolverTiles(B, Walls, Lines, SolverBoard), % List of tile(value(_), lines([line groups]))
 	!.
@@ -306,9 +301,9 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
 /********************************************/
 /********************* writing the result **/
 /******************************************/
-writeFullOutput(puzzle(size(Row,Col), board(Grid), tBoard(TB), lines(_), walls(_))):-
+writeFullOutput(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))):-
 	write("size "), write(Row), write("x"), write(Col), nl,
-	writeBoard(Grid), nl,
+	writeBoard(B), nl,
 	write("size "), write(Col), write("x"), write(Row), write(", Transpose"), nl,
 	writeBoard(TB).
 writeFullOutput(P):- write('Cannot solve puzzle: '), write(P), nl.
