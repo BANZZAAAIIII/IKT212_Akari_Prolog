@@ -1,8 +1,8 @@
 outputFile('.\\solved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_01.txt').
-% inputFile('.\\unsolved\\puzzle_02.txt').
-inputFile('.\\unsolved\\puzzleSolved_02.txt').
+inputFile('.\\unsolved\\puzzle_02.txt').
+% inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 
 
@@ -14,18 +14,22 @@ doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lin
 	!, 
 	checkLines(Board), !,
 	checkNums(Board),
+	% tempPlaceLight(Board),
 	% placeLight(pos(1,4), Board),
 	!.
 
-% Don't think this one is needed anymore, just 
-% placeLight(?pos, ?List, ?List)
-placeLight(pos(ColNum,RowNum), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
-	% getRow(Board, RowNum, Row),
-	% getCol(Board, ColNum, Col),
-	getValue(B, RowNum, ColNum, Val),
-	%Val == '_',		% Check if tile is empty
-	var(Val),
-	Val = "*",
+tempPlaceLight(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
+	getValue(S, 2,1, Val),
+	write(Val).
+
+% placeLight(tile(value(?Tile), lines(Lines), walls(Walls)))
+placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
+	var(Tile),
+	write("Lines: "), write(Lines), nl,
+	write("Walls: "), write(Walls), nl,
+	% checkLines(Lines),
+	% var(Val),
+	% Val = "*",
 	!.
 
 
@@ -39,10 +43,10 @@ countLightsLine(Line) :-
 
 % Checks that number constraint for all num tiles are correct
 checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(Walls), tiles(_))):- 
-	write("All Walls: "), write(Walls), nl,
+	% write("All Walls: "), write(Walls), nl,
 	checkNum(Walls).
 checkNum([]).
-checkNum([[Num|Walls]|Tail]):-
+checkNum([[Num|Walls]|Tail]):- 
 	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl,
 	checkCorrectNrOfLights(Num, Walls),
 	checkNum(Tail).
@@ -52,7 +56,7 @@ checkCorrectNrOfLights(Num, A) :-
 	flatten(A, Adjacent),
     countLightsWalls(Adjacent, NrOfLights), !,
 	% write("Tiles: "), write(Adjacent), nl,
-    write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
+    % write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
 	NrOfLights == Num.
 
 % Counts number if * in a list while ignoring/skipping free vars
@@ -108,6 +112,7 @@ setupBoard(Board, NewBoard):-
 setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
 	createSolverMatrix(Col, Row, S),
 	createSolverTiles(B, Walls, Lines, S), % List of tile(value(_), lines([line groups]))
+	% write(S), nl,
 	!.
 
 createSolverMatrix(Col, Row, Board) :-
@@ -131,8 +136,8 @@ createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :-
 createSolverLine([], Walls, Lines, []).
 createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :- 
 	% write("Tile: "), write(Lh), nl, 
-	checkLines(Lh, Lines, LineResult),	% Check tile
-	checkWalls(Lh, Walls, WallResult),
+	checkLines(Lh, Lines, LineResult), 	% Check tile
+	checkWalls(Lh, Walls, WallResult), 
 	Rh = tile(value(Lh), lines(LineResult), walls(WallResult)),
 	% write("Result: "), write(Result), nl,
 	createSolverLine(Lt, Walls, Lines, Rt). % Next tile
@@ -226,7 +231,7 @@ addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), Walls, p
 
 findNums(_, _, _, 1, 1, Result):-
 	getValue(Board, 1, 1, Val),
-	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList),
+	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList), 
 	%write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
 	append(R, AdjacentList, Result).
 findNums(Board, Col, Row, 1, CurrentRow, Result):- 
@@ -244,12 +249,14 @@ findNums(Board, Col, Row, CurrentCol, CurrentRow, Result):-
 	%write("Col: "), write(CurrentCol), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
 	append(R, AdjacentList, Result).
 
+
 getAdjacentIfNum(Board, Col, Row, Num, List) :-
 	%write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl,
 	(integer(Num) -> % We only want to check if the tile is a number
 		getAdjacentTiles(Board, Col, Row, R),
 		append([], [[Num, R]], List)
 		;
+		List = [],
 		true
     ).
 
