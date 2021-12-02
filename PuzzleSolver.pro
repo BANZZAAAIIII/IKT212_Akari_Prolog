@@ -9,7 +9,7 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board),
 	!,
-	%checkLines(Board),
+	checkLines(Board),
 	% checkNums(Board),
 	% placeLightTemp(pos(1,1), Board, S),
 	!.
@@ -33,41 +33,23 @@ placeLight(pos(RowNum,ColNum), Board) :-
 	%checkIntersectionPos(Row, Col).
 	!.
 
-% TODO: Split lines into before and after a wall, recursion
-%!	checkLines(puzzle(size(_,_), board(B), tBoard(TB))) is det
-%	Checks if two lights are intersecting on its row or column
-% checkLines(puzzle(size(_,_), board(B), tBoard(TB))):-
-% 	filterBoard(B, NB),
-% 	checkIntersection(NB),
-% 	filterBoard(TB, NTB),
-% 	checkIntersection(NTB),
-% 	!.
 
-% checkIntersectionPos(Row, Col) :-
-% 	checkList(Row),
-% 	checkList(Col).
+% Checks all the line groups and fails if one has more than 1 light
+checkLines(puzzle(size(_,_), board(_), tBoard(_), lines(L), walls(_))) :- 
+	maplist(countLights, L).
 
-% checkIntersection(Board) :-
-% 	maplist(checkList, Board).
+countLights(Line) :-
+	count('*', Line, N),
+	N < 2. % Fails when counting more than two lights
 
-% checkList(B) :- checkList(B, _).
-% checkList([], 0).
-% checkList(['*'|T],C):-
-% 	checkList(T, D),
-% 	C is D+1,			% Increment counter
-% 	!,
-% 	C < 2.				% Two lights are intersecting when this fails
-
-% checkList([_|T], C) :-
-% 	checkList(T, D),
-% 	C is D-D. % Reset counter, silly way due to instantiation
-
-% % TODO: Check if this can be abstracted so we can swap out the filter
-% is_empty(Tile) :-  dif(Tile, '_').
-% filterBoard(Board, NewBoard) :-
-% 	maplist(filterLine, Board, NewBoard).
-% filterLine(Line, NewLine) :-
-% 	include(is_empty, Line, NewLine).
+count(_, [], 0).
+count(E, [H|T], N0) :-
+	(dif(E, H) ->
+		C = 0;
+		C = 1
+	),
+   count(E, T, N1),
+   N0 is N1+C.
 
 
 % Checks that number constraint for all num tiles are correct
