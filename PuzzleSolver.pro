@@ -10,8 +10,8 @@ doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lin
 	setupBoard(InitialBoard, Board),
 	!,
 	%checkLines(Board),
-	checkNums(Board),
-	%placeLightTemp(pos(1,1), Board, S),
+	% checkNums(Board),
+	% placeLightTemp(pos(1,1), Board, S),
 	!.
 
 
@@ -36,38 +36,38 @@ placeLight(pos(RowNum,ColNum), Board) :-
 % TODO: Split lines into before and after a wall, recursion
 %!	checkLines(puzzle(size(_,_), board(B), tBoard(TB))) is det
 %	Checks if two lights are intersecting on its row or column
-checkLines(puzzle(size(_,_), board(B), tBoard(TB))):-
-	filterBoard(B, NB),
-	checkIntersection(NB),
-	filterBoard(TB, NTB),
-	checkIntersection(NTB),
-	!.
+% checkLines(puzzle(size(_,_), board(B), tBoard(TB))):-
+% 	filterBoard(B, NB),
+% 	checkIntersection(NB),
+% 	filterBoard(TB, NTB),
+% 	checkIntersection(NTB),
+% 	!.
 
-checkIntersectionPos(Row, Col) :-
-	checkList(Row),
-	checkList(Col).
+% checkIntersectionPos(Row, Col) :-
+% 	checkList(Row),
+% 	checkList(Col).
 
-checkIntersection(Board) :-
-	maplist(checkList, Board).
+% checkIntersection(Board) :-
+% 	maplist(checkList, Board).
 
-checkList(B) :- checkList(B, _).
-checkList([], 0).
-checkList(['*'|T],C):-
-	checkList(T, D),
-	C is D+1,			% Increment counter
-	!,
-	C < 2.				% Two lights are intersecting when this fails
+% checkList(B) :- checkList(B, _).
+% checkList([], 0).
+% checkList(['*'|T],C):-
+% 	checkList(T, D),
+% 	C is D+1,			% Increment counter
+% 	!,
+% 	C < 2.				% Two lights are intersecting when this fails
 
-checkList([_|T], C) :-
-	checkList(T, D),
-	C is D-D. % Reset counter, silly way due to instantiation
+% checkList([_|T], C) :-
+% 	checkList(T, D),
+% 	C is D-D. % Reset counter, silly way due to instantiation
 
-% TODO: Check if this can be abstracted so we can swap out the filter
-is_empty(Tile) :-  dif(Tile, '_').
-filterBoard(Board, NewBoard) :-
-	maplist(filterLine, Board, NewBoard).
-filterLine(Line, NewLine) :-
-	include(is_empty, Line, NewLine).
+% % TODO: Check if this can be abstracted so we can swap out the filter
+% is_empty(Tile) :-  dif(Tile, '_').
+% filterBoard(Board, NewBoard) :-
+% 	maplist(filterLine, Board, NewBoard).
+% filterLine(Line, NewLine) :-
+% 	include(is_empty, Line, NewLine).
 
 
 % Checks that number constraint for all num tiles are correct
@@ -106,6 +106,9 @@ replace_nth1(List, Index, NewElem, NewList) :-
 getValue(Board, RowNum, ColNum, Val) :-
     nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
 
+% Returns True if given list is empty
+is_empty(List) :- not(member(_, List)).
+
 row(puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_)), N, Row) :-
     nth1(N, B, Row).
 col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
@@ -127,48 +130,47 @@ getCol(B, N, R) :-
 setupBoard(Board, NewBoard):-
 	transpose(Board, TransBoard),
 	setupLines(TransBoard, LinesBoard),
-	setupNums(LinesBoard, NewBoard).
-
-
-setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(L))) :-
-	findLines(B, Col, Row, Col, Row, Line, Lines),
-	append(Lines, [Line], Result),
-	% findLines(TB, Row, Col, Row, Col, TLine, TLines),
-	% append(TLines, [TLine], TResult),
-	% append(Result, TResult, L),
-	write(Result),
+	setupNums(LinesBoard, NewBoard),
 	!.
 
 
-findLines(Board, _, _, 1, 1, Line, Lines):-
-	getValue(Board, 1, 1, Val),
-	write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), write(", Line: "), write(Line), write(", Lines: "), write(Lines), nl,
-	(var(Val) ->
-		Line = [Val];
-		Line = []
-	),
-	Lines = [].
+setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L))) :- 
+	% findLines(B, Col, Row, Col, Row, Line, Lines),
+	findLines(B, Lines),
+	findLines(TB, TLines),
+	append(NLines, TLines, L),
+	% append(Lines, [Line], Result),
+	% findLines(TB, Row, Col, Row, Col, TLine, TLines),
+	% append(TLines, [TLine], TResult),
+	% append(Result, TResult, L),
+	% write(L),
+	!.
 
-findLines(Board, Col, Row, 1, CurrentRow, Line, Lines):-
-	R1 is CurrentRow - 1,
-	findLines(Board, Col, Row, Col, R1, Line1, Lines1),
-	getValue(Board, CurrentRow, 1, Val),
-	write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), write(", Line: "), write(Line1), write(", Lines: "), write(Lines1), nl,
-	append(Lines1, [Line1], Lines), % Add last rows line group to lines
-	(var(Val) -> 
-		append([], [Val], Line);
-		Line = []
+findLines([], Result).
+findLines([H|T], Result) :- 
+	findLines(T, Result1),
+	splitLine(H, Line, Result2), 
+	(is_empty(Line) ->
+		Result3 = Result2;
+		append([Line], Result2, Result3)
+	),
+	(var(Result1) ->
+		Result = Result3;
+		append(Result3, Result1, Result)
 	).
-	%write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
-findLines(Board, Col, Row, CurrentCol, CurrentRow, Line, Lines):-
-	C1 is CurrentCol - 1,
-	findLines(Board, Col, Row, C1, CurrentRow, Line1, Lines1),
-	getValue(Board, CurrentRow, CurrentCol, Val),
-	write("Col: "), write(CurrentCol), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), write(", Line: "), write(Line1), write(", Lines: "), write(Lines1), nl,
-	(var(Val) ->
-		append(Line1, [Val], Line),
-		Lines = Lines1;
-		append(Lines1, [Line1], Lines),
+splitLine([], Line, Result) :-
+	Line = [],
+	Result = [].
+splitLine([H|T],  Line, Result) :- 
+	splitLine(T, Line1, Result1),
+	% write(", Val: "), write(H), write(", Line: "), write(Line1), write(", Lines: "), write(Result1), nl,
+	(var(H) ->
+		append([H], Line1, Line),
+		Result = Result1;
+		(is_empty(Line1) ->
+			Result = Result1;
+			append([Line1], Result1, Result)
+		),
 		Line = []
 	).
 
