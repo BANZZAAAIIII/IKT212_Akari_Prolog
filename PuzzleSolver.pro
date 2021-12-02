@@ -1,5 +1,8 @@
 outputFile('.\\solved\\puzzle_00.txt').
-inputFile('.\\unsolved\\puzzle_02.txt').
+% inputFile('.\\unsolved\\puzzle_00.txt').
+% inputFile('.\\unsolved\\puzzle_01.txt').
+% inputFile('.\\unsolved\\puzzle_02.txt').
+inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 
 
@@ -9,9 +12,9 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!, 
-	checkLines(Board),
+	checkLines(Board), !,
 	checkNums(Board),
-	placeLight(pos(1,4), Board),
+	% placeLight(pos(1,4), Board),
 	!.
 
 % Don't think this one is needed anymore, just 
@@ -28,44 +31,35 @@ placeLight(pos(ColNum,RowNum), puzzle(size(Col,Row), board(B), tBoard(TB), lines
 
 % Checks all the line groups and fails if one has more than 1 light
 checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :- 
-	maplist(countLights, L).
-
-countLights(Line) :-
-	count('*', Line, N),
+	maplist(countLightsLine, L).
+countLightsLine(Line) :-
+	countLightsWalls(Line, N),
 	N < 2. % Fails when counting more than two lights
-
-count(_, [], 0).
-count(E, [H|T], N0) :-
-	(dif(E, H) ->
-		C = 0;
-		C = 1
-	),
-   count(E, T, N1),
-   N0 is N1+C.
 
 
 % Checks that number constraint for all num tiles are correct
 checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(Walls), tiles(_))):- 
-	%write("All Walls: "), write(W), nl,
-	checkNum(W).
+	write("All Walls: "), write(Walls), nl,
+	checkNum(Walls).
 checkNum([]).
 checkNum([[Num|Walls]|Tail]):-
-	%write("num: "), write(Num), write(", Walls: "), write(Walls), nl,
+	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl,
 	checkCorrectNrOfLights(Num, Walls),
 	checkNum(Tail).
 
 % Checks that nr of lights around a num tile is valid
 checkCorrectNrOfLights(Num, A) :-
 	flatten(A, Adjacent),
-    countLights(Adjacent, NrOfLights), !,
-	%write("Tiles: "), write(Adjacent), nl,
-    %write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
+    countLightsWalls(Adjacent, NrOfLights), !,
+	% write("Tiles: "), write(Adjacent), nl,
+    write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
 	NrOfLights == Num.
 
 % Counts number if * in a list while ignoring/skipping free vars
-countLights([],0).
-countLights([X|T],N) :- not(var(X)), X == '*', countLights(T, N1), N is N1 + 1.
-countLights([_|T],N) :- countLights(T,N).
+countLightsWalls([],0).
+countLightsWalls([X|T],N) :- not(var(X)), X == '*', countLightsWalls(T, N1), N is N1 + 1.
+countLightsWalls([_|T],N) :- countLightsWalls(T,N).
+
 
 setValue(Board, Row, RowNum, ColNum, Val, NewBoard) :-
 	replace_nth1(Row, ColNum, Val, NewRow),
@@ -109,6 +103,8 @@ setupBoard(Board, NewBoard):-
 	!.
 
 
+% Adds tiles(S) to the datastructure
+% This contains a free tiles on the board with its corresponding line and walls
 setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
 	createSolverMatrix(Col, Row, S),
 	createSolverTiles(B, Walls, Lines, S), % List of tile(value(_), lines([line groups]))
@@ -123,7 +119,6 @@ createColumn([], Col).
 createColumn([H|T], Col) :-
 	length(H, Col),
 	createColumn(T, Col).
-
 
 
 createSolverTiles([], Walls, Lines, []).
@@ -166,8 +161,14 @@ checkWalls(Tile, [H|T], Result) :-
 		true
 	).
 
-
-
+% Checks if Elem is the given list, works with free variables, if not in list fail
+freeMember(Elem,[]):- !, fail.
+freeMember(Elem, [H|T]) :-
+	(Elem == H ->
+		true;
+		!, freeMember(Elem, T)
+	),
+	!.
 % Checks if Elem is the given list, works with free variables, if not in list fail
 freeMember(Elem,[]):- !, fail.
 freeMember(Elem, [H|T]) :-
@@ -177,15 +178,9 @@ freeMember(Elem, [H|T]) :-
 	),
 	!.
 
-% Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(Elem,[]):- !, fail.
-freeMember(Elem, [H|T]) :-
-	(Elem == H ->
-		true;
-		!, freeMember(Elem, T)
-	),
-	!.
 
+% Adds lines(L) to the datastructure
+% This countains a list of all lines that are continuous
 setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L))) :- 
 	findLines(B, Lines),
 	findLines(TB, TLines),
