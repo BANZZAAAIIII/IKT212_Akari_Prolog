@@ -9,7 +9,7 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board),
 	!, 
-	checkLines(Board), nl,
+	checkLines(Board),
 	% checkNums(Board),
 	placeLight(pos(1,4), Board),
 	!.
@@ -24,13 +24,10 @@ placeLightTemp(pos(Col,Row), puzzle(size(_,_), board(B), tBoard(_), lines(_), wa
 placeLight(pos(ColNum,RowNum), puzzle(size(_,_), board(B), tBoard(_), lines(L), walls(_))) :-
 	% getRow(Board, RowNum, Row),
 	% getCol(Board, ColNum, Col),
-	getValue(B, RowNum, ColNum, Val), nl,
+	getValue(B, RowNum, ColNum, Val),
 	%Val == '_',		% Check if tile is empty
 	var(Val),
 	Val = "*",
-	write("Lines: "), write(L), nl,
-	%setValue(Board, Row, RowNum, ColNum, '*', NewBoard),
-	%checkIntersectionPos(Row, Col).
 	!.
 
 
@@ -119,21 +116,20 @@ setupBoard(Board, NewBoard):-
 
 setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls))) :-
 	createSolverMatrix(Col, Row, SolverBoard),
-	write(B),nl,
-	createSolverTiles(B, Walls, Lines, SolverBoard),
-	write(SolverBoard),nl,
-	write("Finished"), nl,
+	createSolverTiles(B, Walls, Lines, SolverBoard), % List of tile(value(_), lines([line groups]))
 	!.
 
 createSolverMatrix(Col, Row, Board) :-
 	length(Board, Row),
-	createColumn(Board, Col), nl,
+	createColumn(Board, Col),
 	% write("Solver Matrix: "), write(Board),nl,
 	!.
 createColumn([], Col).
 createColumn([H|T], Col) :-
 	length(H, Col),
 	createColumn(T, Col).
+
+
 
 createSolverTiles([], Walls, Lines, []).
 createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :- 
@@ -145,8 +141,9 @@ createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :-
 createSolverLine([], Walls, Lines, []).
 createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :- 
 	% write("Tile: "), write(Lh), nl, 
-	checkLines(Lh, Lines, Result),	% Check tile
-	Rh = Result,
+	checkLines(Lh, Lines, LineResult),	% Check tile
+	checkWalls(Lh, Walls, WallResult),
+	Rh = tile(value(Lh), lines(LineResult), walls(WallResult)),
 	% write("Result: "), write(Result), nl,
 	createSolverLine(Lt, Walls, Lines, Rt). % Next tile
 
@@ -162,6 +159,19 @@ checkLines(Tile, [H|T], Result) :-
 		Result = Result1,
 		true, !
 	).
+
+checkWalls(Tile, [], Result) :-
+	Result = [].
+checkWalls(Tile, [H|T], Result) :- 
+	checkWalls(Tile, T, Result1),
+	nth1(2, H, WallTiles),
+	(freeMember(Tile, WallTiles) ->
+		append([H], Result1, Result);
+		Result = Result1,
+		true
+	).
+
+
 
 % Checks if Elem is the given list, works with free variables, if not in list fail
 freeMember(Elem,[]):- !, fail.
@@ -219,7 +229,7 @@ splitLine([H|T],  Line, Result) :-
 % This countains a list of all number walls with its adjacent tiles
 setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), NewBoard):-
 	findNums(B, Row, Col, Row, Col, R),
-	%write(R), nl,
+	% write("Walls: "), write(R), nl,
 	addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), R, NewBoard).
 
 addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), Walls, puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls))).
@@ -248,7 +258,7 @@ getAdjacentIfNum(Board, Col, Row, Num, List) :-
 	%write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl,
 	(integer(Num) -> % We only want to check if the tile is a number
 		getAdjacentTiles(Board, Col, Row, R),
-		append([], [[Num, [R]]], List)
+		append([], [[Num, R]], List)
 		;
 		true
     ).
