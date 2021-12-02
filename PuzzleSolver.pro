@@ -7,16 +7,16 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 /********************* solving the puzzle **/
 /******************************************/
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
-	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))
+	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!, 
 	checkLines(Board),
-	% checkNums(Board),
+	checkNums(Board),
 	placeLight(pos(1,4), Board),
 	!.
 
 % Don't think this one is needed anymore, just 
 % placeLight(?pos, ?List, ?List)
-placeLight(pos(ColNum,RowNum), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))) :-
+placeLight(pos(ColNum,RowNum), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
 	% getRow(Board, RowNum, Row),
 	% getCol(Board, ColNum, Col),
 	getValue(B, RowNum, ColNum, Val),
@@ -27,7 +27,7 @@ placeLight(pos(ColNum,RowNum), puzzle(size(Col,Row), board(B), tBoard(TB), lines
 
 
 % Checks all the line groups and fails if one has more than 1 light
-checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))) :- 
+checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :- 
 	maplist(countLights, L).
 
 countLights(Line) :-
@@ -45,7 +45,7 @@ count(E, [H|T], N0) :-
 
 
 % Checks that number constraint for all num tiles are correct
-checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(W))):- 
+checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(Walls), tiles(_))):- 
 	%write("All Walls: "), write(W), nl,
 	checkNum(W).
 checkNum([]).
@@ -109,9 +109,9 @@ setupBoard(Board, NewBoard):-
 	!.
 
 
-setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(SolvedBoard))) :-
-	createSolverMatrix(Col, Row, SolverBoard),
-	createSolverTiles(B, Walls, Lines, SolverBoard), % List of tile(value(_), lines([line groups]))
+setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
+	createSolverMatrix(Col, Row, S),
+	createSolverTiles(B, Walls, Lines, S), % List of tile(value(_), lines([line groups]))
 	!.
 
 createSolverMatrix(Col, Row, Board) :-
@@ -301,7 +301,7 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
 /********************************************/
 /********************* writing the result **/
 /******************************************/
-writeFullOutput(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls), solvedBoard(S))):-
+writeFullOutput(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))):-
 	write("size "), write(Row), write("x"), write(Col), nl,
 	writeBoard(B), nl,
 	write("size "), write(Col), write("x"), write(Row), write(", Transpose"), nl,
