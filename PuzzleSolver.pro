@@ -1,7 +1,7 @@
 outputFile('.\\solved\\puzzle_00.txt').
-% inputFile('.\\unsolved\\puzzle_00.txt').
+inputFile('.\\unsolved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_01.txt').
-inputFile('.\\unsolved\\puzzle_02.txt').
+% inputFile('.\\unsolved\\puzzle_02.txt').
 % inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 
@@ -12,34 +12,64 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!, 
-	checkLines(Board), !,
-	checkNums(Board),
-	% tempPlaceLight(Board),
-	% placeLight(pos(1,4), Board),
+	checkLines(Board), !, 
+	% checkNums(Board),
+	tempPlaceLight(4,1, Board), 
+	% tempPlaceLight(6,3, Board),
 	!.
 
-tempPlaceLight(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
-	getValue(S, 2,1, Val),
-	write(Val).
+tempPlaceLight(Col, Row, puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(_), tiles(S))) :- 
+	getValue(S, Col, Row, Val),
+	placeLight(Val).
 
 % placeLight(tile(value(?Tile), lines(Lines), walls(Walls)))
 placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	var(Tile),
-	write("Lines: "), write(Lines), nl,
-	write("Walls: "), write(Walls), nl,
-	% checkLines(Lines),
-	% var(Val),
-	% Val = "*",
+	% write("Value: "), write(Tile), nl,
+	% write("Lines: "), write(Lines), nl,
+	% write("Walls: "), write(Walls), nl, 
+	checkLines(Lines, 1),
+	checkLightsWallsLessThan(Walls),
+	Tile = '*', 
+	setLines(Lines),
 	!.
+
+setLines([]).
+setLines([H|T]) :-
+	setLine(H),
+	setLines(T).
+setLine([]).
+setLine([H|T]) :-
+	H = '+',
+	setLine(T).
+setLine([_|T]) :-
+	setLine(T).
 
 
 % Checks all the line groups and fails if one has more than 1 light
 checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :- 
-	maplist(countLightsLine, L).
-countLightsLine(Line) :-
-	countLightsWalls(Line, N),
-	N < 2. % Fails when counting more than two lights
+	checkLines(L, 2).
 
+checkLines([], Limit).
+checkLines([H|T], Limit) :-
+	checkLines(T, Limit),
+	countLightsWalls(H, N), 
+	!,
+	N < Limit.
+
+
+checkLightsWallsLessThan([]).
+checkLightsWallsLessThan([[Num|Walls]|Tail]):- 
+	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl, 
+	checkLessThanNrOfLights(Num, Walls),
+	checkLightsWallsLessThan(Tail).
+
+checkLessThanNrOfLights(Num, A) :-
+	flatten(A, Adjacent),
+    countLightsWalls(Adjacent, NrOfLights), !,
+	% write("Tiles: "), write(Adjacent), nl,
+    % write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
+	NrOfLights < Num.
 
 % Checks that number constraint for all num tiles are correct
 checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(Walls), tiles(_))):- 
@@ -47,7 +77,7 @@ checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(Walls), tiles(_
 	checkNum(Walls).
 checkNum([]).
 checkNum([[Num|Walls]|Tail]):- 
-	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl,
+	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl, 
 	checkCorrectNrOfLights(Num, Walls),
 	checkNum(Tail).
 
