@@ -8,34 +8,34 @@ inputFile('.\\unsolved\\puzzle_02.txt').
 /******************************************/
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board),
-	!,
-	checkLines(Board),
+	!, 
+	checkLines(Board), nl,
 	% checkNums(Board),
-	% placeLightTemp(pos(1,1), Board, S),
+	placeLight(pos(1,4), Board),
 	!.
 
 
 % Temporary for showing placeLight works
-placeLightTemp(pos(X,Y), puzzle(size(Row,Col), board(B), tBoard(TB)), puzzle(size(Row,Col), board(B), tBoard(TB))) :-
-	placeLight(pos(X,Y), B),
+placeLightTemp(pos(Col,Row), puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_)), puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_))) :-
+	placeLight(pos(Col,Row), B),
 	!.
 
 % placeLight(?pos, ?List, ?List)
-placeLight(pos(RowNum,ColNum), Board) :-
+placeLight(pos(ColNum,RowNum), puzzle(size(_,_), board(B), tBoard(_), lines(L), walls(_))) :-
 	% getRow(Board, RowNum, Row),
 	% getCol(Board, ColNum, Col),
-	getValue(Board, RowNum, ColNum, Val),
+	getValue(B, RowNum, ColNum, Val), nl,
 	%Val == '_',		% Check if tile is empty
 	var(Val),
-	!,
-	Val = '*',
+	Val = "*",
+	write("Lines: "), write(L), nl,
 	%setValue(Board, Row, RowNum, ColNum, '*', NewBoard),
 	%checkIntersectionPos(Row, Col).
 	!.
 
 
 % Checks all the line groups and fails if one has more than 1 light
-checkLines(puzzle(size(_,_), board(_), tBoard(_), lines(L), walls(_))) :- 
+checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls))) :- 
 	maplist(countLights, L).
 
 countLights(Line) :-
@@ -112,20 +112,79 @@ getCol(B, N, R) :-
 setupBoard(Board, NewBoard):-
 	transpose(Board, TransBoard),
 	setupLines(TransBoard, LinesBoard),
-	setupNums(LinesBoard, NewBoard),
+	setupNums(LinesBoard, WallsBoard),
+	setupSolver(WallsBoard, NewBoard),
 	!.
 
 
+setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls))) :-
+	createSolverMatrix(Col, Row, SolverBoard),
+	write(B),nl,
+	createSolverTiles(B, Walls, Lines, SolverBoard),
+	write(SolverBoard),nl,
+	write("Finished"), nl,
+	!.
+
+createSolverMatrix(Col, Row, Board) :-
+	length(Board, Row),
+	createColumn(Board, Col), nl,
+	% write("Solver Matrix: "), write(Board),nl,
+	!.
+createColumn([], Col).
+createColumn([H|T], Col) :-
+	length(H, Col),
+	createColumn(T, Col).
+
+createSolverTiles([], Walls, Lines, []).
+createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :- 
+	% write("BoardLine: "), write(Bh),nl,
+	% write("SolverLine: "), write(SH),nl,
+	createSolverLine(Bh, Walls, Lines, Sh),		% Loop a line
+	createSolverTiles(Bt, Walls, Lines, St).	% Next Row
+
+createSolverLine([], Walls, Lines, []).
+createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :- 
+	% write("Tile: "), write(Lh), nl, 
+	checkLines(Lh, Lines, Result),	% Check tile
+	Rh = Result,
+	% write("Result: "), write(Result), nl,
+	createSolverLine(Lt, Walls, Lines, Rt). % Next tile
+
+checkLines(Tile, [], Result):-
+	Result = [].
+checkLines(Tile, [H|T], Result) :- 
+	checkLines(Tile, T, Result1),
+	% write("Line group: "), write(H), nl,
+	(freeMember(Tile, H) ->
+		% write("Success"), nl, 
+		append([H], Result1, Result);
+		% write("Failure"),
+		Result = Result1,
+		true, !
+	).
+
+% Checks if Elem is the given list, works with free variables, if not in list fail
+freeMember(Elem,[]):- !, fail.
+freeMember(Elem, [H|T]) :-
+	(Elem == H ->
+		true;
+		!, freeMember(Elem, T)
+	),
+	!.
+
+% Checks if Elem is the given list, works with free variables, if not in list fail
+freeMember(Elem,[]):- !, fail.
+freeMember(Elem, [H|T]) :-
+	(Elem == H ->
+		true;
+		!, freeMember(Elem, T)
+	),
+	!.
+
 setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L))) :- 
-	% findLines(B, Col, Row, Col, Row, Line, Lines),
 	findLines(B, Lines),
 	findLines(TB, TLines),
-	append(NLines, TLines, L),
-	% append(Lines, [Line], Result),
-	% findLines(TB, Row, Col, Row, Col, TLine, TLines),
-	% append(TLines, [TLine], TResult),
-	% append(Result, TResult, L),
-	% write(L),
+	append(Lines, TLines, L),
 	!.
 
 findLines([], Result).
@@ -389,5 +448,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-:- run.
+% :- run.
 %:- halt.
