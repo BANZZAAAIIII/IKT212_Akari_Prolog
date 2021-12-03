@@ -1,5 +1,10 @@
-outputFile('.\\solved\\puzzle_00.txt').
-inputFile('.\\unsolved\\puzzle_00.txt').
+outputFile('./solved/puzzle_00.txt').
+inputFile('./unsolved/puzzle_00.txt').
+inputFile('./unsolved/puzzle_01.txt').
+inputFile('./unsolved/puzzle_02.txt').
+inputFile('./unsolved/puzzleSolved_02.txt').
+% outputFile('.\\solved\\puzzle_00.txt').
+% inputFile('.\\unsolved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_01.txt').
 % inputFile('.\\unsolved\\puzzle_02.txt').
 % inputFile('.\\unsolved\\puzzleSolved_02.txt').
@@ -14,8 +19,8 @@ doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lin
 	!, 
 	checkLines(Board), !, 
 	% checkNums(Board),
-	tempPlaceLight(4,1, Board), 
-	% tempPlaceLight(6,3, Board),
+	tempPlaceLight(2,1, Board), 
+	tempPlaceLight(1,2, Board),
 	!.
 
 tempPlaceLight(Col, Row, puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(_), tiles(S))) :- 
@@ -31,9 +36,11 @@ placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	checkLines(Lines, 1),
 	checkLightsWallsLessThan(Walls),
 	Tile = '*', 
-	setLines(Lines),
+	setLines(Lines), 	% Light up intersecting tiles on given tiles row and column
+	setWalls(Walls),	% Mark tiles that are no longer valid for light placement
 	!.
 
+% Light up intersecting tiles on given tiles row and column
 setLines([]).
 setLines([H|T]) :-
 	setLine(H),
@@ -44,6 +51,20 @@ setLine([H|T]) :-
 	setLine(T).
 setLine([_|T]) :-
 	setLine(T).
+
+% Mark tiles that are no longer valid for light placement
+setWalls(Walls):-
+	checkNum(Walls),
+	markWalls(Walls).
+setWalls(_) :-
+	true,
+	!.
+markWalls([]).
+markWalls([[Num|Walls]|Tail]):-
+	write("Mark wall:"), write(Num), nl,
+	flatten(Walls, FlattWalls), 
+	setLine(FlattWalls), 
+	markWalls(Tail).
 
 
 % Checks all the line groups and fails if one has more than 1 light
