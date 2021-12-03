@@ -3,7 +3,8 @@
 outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
-inputFile('./unsolved/puzzle_02.txt').
+% inputFile('./unsolved/puzzle_02.txt').
+inputFile('./unsolved/puzzle_03.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_00.txt').
@@ -19,51 +20,50 @@ inputFile('./unsolved/puzzle_02.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!,
-	trivialSolver(Board),
+	trivialSolver(Board), 
+	solve(Board),
 	!.
 
+% Trivial solver places lights around number tiles that only have one possible solution
 trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T))) :-
 	flatten(T, Tiles),
-	write("All tiles: ") , write(Tiles), nl,
-	looper(B, Tiles, Flag),
-	write(" Flag ") , write(Flag), nl,
-	write(" LOOOOOOPER ") , write(Tiles), nl.
-	% (not(var(Flag)) -> % Fixs
-	% 	trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T)));
-	% 	true
-	% ).
-
-looper(_, [], _):- nl, write("AAAAHHHH") , nl.
-looper(B, [tile(value(Tile), lines(Lines), walls(Walls))|Tiles], Flag) :- 
-
-	write("Tile:  ") , write(Tile), nl,
-	write("Walls: ") , write(Walls), nl,
-	write("Flag:  ") , write(Flag), nl,
-	% trace,
-	waller(B, tile(value(Tile), lines(Lines), walls(Walls)), Walls, Flag), !,
-	looper(B, Tiles, Flag), !.
+	checkTiles(B, Tiles, Flag),
 	
-waller(_, _, [], _).
-waller(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|Wall]|Tail], Flag) :-
-	write("NumWall: ") , write(NumWall), nl,
-	write("Wall:    ") , write(Wall), nl,
-	write("Tail:    ") , write(Tail), nl,
-	write("Flag:    ") , write(Flag), nl,
+	(not(var(Flag)) -> % If any light are placed a new number wall choulde have lights placed around itself
+		trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T)));
+		true
+	).
+trivialSolver(_).
+
+checkTiles(_, [], _).
+checkTiles(B, [tile(value(Tile), lines(Lines), walls(Walls))|Tiles], Flag) :- 
+
+	checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Walls, Flag), !,
+	checkTiles(B, Tiles, Flag).
+	
+checkWallConstraint(_, _, [], _).
+checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|Wall]|Tail], Flag) :-
+
 	flatten(Wall, W),
-	
-	countFreeVars(W, Num),
-	% trace,
-	
-	(NumWall >= Num ->
-		write("True  - Free Vars: ") , write(Num), nl,
+	countFreeVars(W, NumFree),
+	countLightsWalls(W, NumLights), !,
+	Num is NumFree + NumLights,		
+	(NumWall >= Num, dif(NumWall, NumLights) ->
+		% write("NumWall: ") , write(NumWall), nl,
+		% write("Wall:    ") , write(Wall), nl,
+		% write("Tail:    ") , write(Tail), nl,
+		% write("Flag:    ") , write(Flag), nl,
+		% write("True  - NumFree  : ") , write(NumFree), nl,
+		% write("True  - NumLights: ") , write(NumLights), nl,
 		(placeLight(tile(value(Tile), lines(Lines), walls(Walls))) ->
-			setWalls([NumWall|Wall]), writeBoard(B), Flag is 1, true;
-			writeBoard(B), Flag is 1, true
+			setWalls([NumWall|Wall]), 
+			% writeBoard(B), nl, 
+			Flag is 1, % Flags to indicate that trivialSolver should be called again
+			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag);
+			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag)
 		);
-		write("False - Free Vars: ") , write(Num), nl
-	),
-	nl.
-	% waller(Tail, Flag).
+		checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag)
+	).
 
 countFreeVars([],0).
 countFreeVars([X|T],N) :- var(X), countFreeVars(T, N1), N is N1 + 1.
