@@ -379,7 +379,10 @@ writeLine([]):- nl.
 writeLine([Head|Tail]):-
 	(var(Head) ->
 		write('_');
-		write(Head)
+		(Head == '+' ->
+			write('_');
+			write(Head)
+		)
 	),
 	writeLine(Tail).
 
