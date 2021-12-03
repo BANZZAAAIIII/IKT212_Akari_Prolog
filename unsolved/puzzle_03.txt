@@ -1,0 +1,11 @@
+puzzles 1
+size 8x9
+___X___X
+_X_2____
+__XX_1__
+2_______
+XXXX_X0_
+X_2_X___
+__X__XXX
+XXX_X2_X
+_______X

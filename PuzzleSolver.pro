@@ -3,7 +3,8 @@
 outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
-inputFile('./unsolved/puzzle_02.txt').
+% inputFile('./unsolved/puzzle_02.txt').
+inputFile('./unsolved/puzzle_03.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_00.txt').
@@ -22,11 +23,12 @@ doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lin
 	solve(Board),
 	!.
 
-solve(puzzle(size(_,_), board(_), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
+solve(puzzle(size(_,_), board(Board), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
 	flatten(S, NewS),
 	backtracking(NewS),
 	checkNum(Walls),
-	checkLines(Lines).
+	checkLines(Lines),
+	checkLitUp(Board).
 backtracking([]).
 backtracking([H|T]) :-
 	placeLight(H),
@@ -76,6 +78,14 @@ markWalls([[_|Walls]|Tail]):-
 	setLine(FlattWalls), 
 	markWalls(Tail).
 
+
+checkLitUp(Board) :-
+	flatten(Board, FlatBoard),
+	not(checkLitUpLoop(FlatBoard)).
+checkLitUpLoop([H|_]) :-
+	var(H).
+checkLitUpLoop([_|T]):-
+	checkLitUpLoop(T).
 
 % Checks all the line groups and fails if one has more than 1 light
 checkLines(puzzle(size(_,_), board(_), tBoard(_), lines(L), walls(_), tiles(_))) :- 
@@ -520,5 +530,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-:- run.
-:- halt.
+% :- run.
+% :- halt.
