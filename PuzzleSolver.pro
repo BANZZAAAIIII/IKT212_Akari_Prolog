@@ -70,7 +70,7 @@ setWalls(_) :-
 	true,
 	!.
 markWalls([]).
-markWalls([[Num|Walls]|Tail]):-
+markWalls([[_|Walls]|Tail]):-
 	% write("Mark wall:"), write(Num), nl,
 	flatten(Walls, FlattWalls), 
 	setLine(FlattWalls), 
@@ -78,10 +78,10 @@ markWalls([[Num|Walls]|Tail]):-
 
 
 % Checks all the line groups and fails if one has more than 1 light
-checkLines(puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :- 
+checkLines(puzzle(size(_,_), board(_), tBoard(_), lines(L), walls(_), tiles(_))) :- 
 	checkLines(L, 2).
 
-checkLines([], Limit).
+checkLines([], _).
 checkLines([H|T], Limit) :-
 	checkLines(T, Limit),
 	countLightsWalls(H, N), 
@@ -170,7 +170,7 @@ setupBoard(Board, NewBoard):-
 
 % Adds tiles(S) to the datastructure
 % This contains a free tiles on the board with its corresponding line and walls
-setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))) :-
+setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(_), walls(Walls), tiles(S))) :-
 	createSolverMatrix(Col, Row, S),
 	createSolverTiles(B, Walls, Lines, S), % List of tile(value(_), lines([line groups]))
 	% write(S), nl,
@@ -181,20 +181,20 @@ createSolverMatrix(Col, Row, Board) :-
 	createColumn(Board, Col),
 	% write("Solver Matrix: "), write(Board),nl,
 	!.
-createColumn([], Col).
+createColumn([], _).
 createColumn([H|T], Col) :-
 	length(H, Col),
 	createColumn(T, Col).
 
 
-createSolverTiles([], Walls, Lines, []).
+createSolverTiles([], _, _, []).
 createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :- 
 	% write("BoardLine: "), write(Bh),nl,
 	% write("SolverLine: "), write(SH),nl,
 	createSolverLine(Bh, Walls, Lines, Sh),		% Loop a line
 	createSolverTiles(Bt, Walls, Lines, St).	% Next Row
 
-createSolverLine([], Walls, Lines, []).
+createSolverLine([], _, _, []).
 createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :- 
 	% write("Tile: "), write(Lh), nl, 
 	checkLines(Lh, Lines, LineResult), 	% Check tile
@@ -203,7 +203,7 @@ createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :-
 	% write("Result: "), write(Result), nl,
 	createSolverLine(Lt, Walls, Lines, Rt). % Next tile
 
-checkLines(Tile, [], Result):-
+checkLines(_, [], Result):-
 	Result = [].
 checkLines(Tile, [H|T], Result) :- 
 	checkLines(Tile, T, Result1),
@@ -216,7 +216,7 @@ checkLines(Tile, [H|T], Result) :-
 		true, !
 	).
 
-checkWalls(Tile, [], Result) :-
+checkWalls(_, [], Result) :-
 	Result = [].
 checkWalls(Tile, [H|T], Result) :- 
 	checkWalls(Tile, T, Result1),
@@ -228,7 +228,7 @@ checkWalls(Tile, [H|T], Result) :-
 	).
 
 % Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(Elem,[]):- !, fail.
+freeMember(_,[]):- !, fail.
 freeMember(Elem, [H|T]) :-
 	(Elem == H ->
 		true;
@@ -236,7 +236,7 @@ freeMember(Elem, [H|T]) :-
 	),
 	!.
 % Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(Elem,[]):- !, fail.
+freeMember(_,[]):- !, fail.
 freeMember(Elem, [H|T]) :-
 	(Elem == H ->
 		true;
@@ -253,7 +253,7 @@ setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Col,Row), bo
 	append(Lines, TLines, L),
 	!.
 
-findLines([], Result).
+findLines([], _).
 findLines([H|T], Result) :- 
 	findLines(T, Result1),
 	splitLine(H, Line, Result2), 
@@ -294,7 +294,7 @@ findNums(_, _, _, 1, 1, Result):-
 	getValue(Board, 1, 1, Val),
 	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList), 
 	%write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
-	append(R, AdjacentList, Result).
+	append(_, AdjacentList, Result).
 findNums(Board, Col, Row, 1, CurrentRow, Result):- 
 	R1 is CurrentRow - 1,
 	findNums(Board, Col, Row, Col, R1, R),
@@ -364,11 +364,12 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
 /********************************************/
 /********************* writing the result **/
 /******************************************/
-writeFullOutput(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))):-
+writeFullOutput(puzzle(size(Row,Col), board(B), tBoard(_), lines(_), walls(_), tiles(_))):-
 	write("size "), write(Row), write("x"), write(Col), nl,
-	writeBoard(B), nl,
-	write("size "), write(Col), write("x"), write(Row), write(", Transpose"), nl,
-	writeBoard(TB).
+	writeBoard(B),
+	% write("size "), write(Col), write("x"), write(Row), write(", Transpose"), nl,
+	% writeBoard(TB),
+	!.
 writeFullOutput(P):- write('Cannot solve puzzle: '), write(P), nl.
 
 writeBoard([]).
@@ -424,7 +425,7 @@ readGridLine([E|T]):-
 	readGridLine(T).
 
 translate(-1,'ERROR: EOF').
-translate(95, A).
+translate(95, _).
 translate(X,E):- whitespace(X), get_code(Y), translate(Y,E).
 translate(X,E):- name(E,[X]).
 whitespace(10). whitespace(12). whitespace(32).
