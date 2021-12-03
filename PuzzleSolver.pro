@@ -1,8 +1,8 @@
 outputFile('./solved/puzzle_00.txt').
-inputFile('./unsolved/puzzle_00.txt').
-inputFile('./unsolved/puzzle_01.txt').
+% inputFile('./unsolved/puzzle_00.txt').
+% inputFile('./unsolved/puzzle_01.txt').
 inputFile('./unsolved/puzzle_02.txt').
-inputFile('./unsolved/puzzleSolved_02.txt').
+% inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_01.txt').
@@ -16,13 +16,23 @@ inputFile('./unsolved/puzzleSolved_02.txt').
 /******************************************/
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
-	!, 
-	checkLines(Board), !, 
+	!,
+	solve(Board),
+	% checkLines(Board), !,
 	% checkNums(Board),
-	tempPlaceLight(2,1, Board), 
-	tempPlaceLight(1,2, Board),
 	!.
 
+solve(puzzle(size(_,_), board(_), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
+	flatten(S, NewS),
+	backtracking(NewS),
+	checkNum(Walls),
+	checkLines(Lines).
+backtracking([]).
+backtracking([H|T]) :-
+	placeLight(H),
+	backtracking(T).
+backtracking([_|T]) :-
+	backtracking(T).
 tempPlaceLight(Col, Row, puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(_), tiles(S))) :- 
 	getValue(S, Col, Row, Val),
 	placeLight(Val).
@@ -61,7 +71,7 @@ setWalls(_) :-
 	!.
 markWalls([]).
 markWalls([[Num|Walls]|Tail]):-
-	write("Mark wall:"), write(Num), nl,
+	% write("Mark wall:"), write(Num), nl,
 	flatten(Walls, FlattWalls), 
 	setLine(FlattWalls), 
 	markWalls(Tail).
