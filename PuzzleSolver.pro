@@ -1,3 +1,5 @@
+% outputFile('./puzzle_solved.txt').
+% inputFile('./puzzle_unsolved.txt').
 outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
@@ -484,7 +486,7 @@ is_number_code(95,0).
 /*********************** global control: starting the algorithm and the reading **/
 /********************************************************************************/
 input_output(IF,OF):-
-	current_prolog_flag(argv, ["--io",IF,OF]), !.
+	current_prolog_flag(argv, ['--io',IF,OF]), !.
 input_output(IF,OF):-
 	inputFile(IF),
 	outputFile(OF).
