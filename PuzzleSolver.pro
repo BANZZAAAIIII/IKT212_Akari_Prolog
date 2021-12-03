@@ -4,7 +4,7 @@ outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
 % inputFile('./unsolved/puzzle_02.txt').
-inputFile('./unsolved/puzzle_03.txt').
+inputFile('./unsolved/puzzle_06.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_00.txt').
@@ -20,8 +20,8 @@ inputFile('./unsolved/puzzle_03.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!,
-	trivialSolver(Board), 
-	solve(Board),
+	time(trivialSolver(Board)), 
+	time(solve(Board)),
 	!.
 
 % Trivial solver places lights around number tiles that only have one possible solution
@@ -57,7 +57,7 @@ checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|
 		% write("True  - NumLights: ") , write(NumLights), nl,
 		(placeLight(tile(value(Tile), lines(Lines), walls(Walls))) ->
 			setWalls([NumWall|Wall]), 
-			% writeBoard(B), nl, 
+			writeBoard(B), nl, 
 			Flag is 1, % Flags to indicate that trivialSolver should be called again
 			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag);
 			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag)
@@ -439,7 +439,7 @@ writeLine([Head|Tail]):-
 	(var(Head) ->
 		write('_');
 		(Head == '+' ->
-			write('_');
+			write('+');
 			write(Head)
 		)
 	),
