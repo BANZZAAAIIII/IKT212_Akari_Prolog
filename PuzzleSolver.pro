@@ -199,18 +199,6 @@ getValue(Board, RowNum, ColNum, Val) :-
 % Returns True if given list is empty
 is_empty(List) :- not(member(_, List)).
 
-row(puzzle(size(_,_), board(B), tBoard(_), lines(_), walls(_)), N, Row) :-
-    nth1(N, B, Row).
-col(puzzle(size(_, _), board(_), trans(BT)), N, Col) :-
-    row(puzzle(size(_, _), board(BT), trans(_), lines(_), walls(_)), N, Col).
-
-getRow(B, N, R) :-
-	nth1(N, B, R).
-getCol(B, N, R) :-
-	trans(B, TB),
-	getRow(TB, N, R).
-
-
 /***********************************************/
 /********************* Setting Up the puzzle **/
 /*********************************************/
@@ -285,16 +273,8 @@ checkWalls(Tile, [H|T], Result) :-
 	).
 
 % Checks if Elem is the given list, works with free variables, if not in list fail
-% freeMember(_,[]):- !, fail.
-% freeMember(Elem, [H|T]) :-
-% 	(Elem == H ->
-% 		true;
-% 		!, freeMember(Elem, T)
-% 	),
-% 	!.
-
-% Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(Elem, [H|T]) :-
+freeMember(_, []) :- fail.
+freeMember(Elem, [H|_]) :-
 	Elem == H,
 	!.
 freeMember(Elem, [_|T]) :-
