@@ -248,7 +248,7 @@ createSolverTiles([], _, _, []).
 createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :- 
 	% write("BoardLine: "), write(Bh),nl,
 	% write("SolverLine: "), write(SH),nl,
-	createSolverLine(Bh, Walls, Lines, Sh),		% Loop a line
+	createSolverLine(Bh, Walls, Lines, Sh),		% Loop a line 
 	createSolverTiles(Bt, Walls, Lines, St).	% Next Row
 
 createSolverLine([], _, _, []).
@@ -285,22 +285,20 @@ checkWalls(Tile, [H|T], Result) :-
 	).
 
 % Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(_,[]):- !, fail.
-freeMember(Elem, [H|T]) :-
-	(Elem == H ->
-		true;
-		!, freeMember(Elem, T)
-	),
-	!.
-% Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(_,[]):- !, fail.
-freeMember(Elem, [H|T]) :-
-	(Elem == H ->
-		true;
-		!, freeMember(Elem, T)
-	),
-	!.
+% freeMember(_,[]):- !, fail.
+% freeMember(Elem, [H|T]) :-
+% 	(Elem == H ->
+% 		true;
+% 		!, freeMember(Elem, T)
+% 	),
+% 	!.
 
+% Checks if Elem is the given list, works with free variables, if not in list fail
+freeMember(Elem, [H|T]) :-
+	Elem == H,
+	!.
+freeMember(Elem, [_|T]) :-
+	freeMember(Elem, T).
 
 % Adds lines(L) to the datastructure
 % This countains a list of all lines that are continuous
