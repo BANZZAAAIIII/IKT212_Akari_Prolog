@@ -69,12 +69,13 @@ countFreeVars([],0).
 countFreeVars([X|T],N) :- var(X), countFreeVars(T, N1), N is N1 + 1.
 countFreeVars([_|T],N) :- countFreeVars(T,N).
 
+solve(puzzle(size(_,_), board(Board), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
 
-solve(puzzle(size(_,_), board(_), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
 	flatten(S, NewS),
 	backtracking(NewS),
 	checkNum(Walls),
-	checkLines(Lines).
+	checkLines(Lines),
+	checkLitUp(Board).
 backtracking([]).
 backtracking([H|T]) :-
 	placeLight(H),
@@ -124,6 +125,14 @@ markWalls([[_|Walls]|Tail]):-
 	setLine(FlattWalls), 
 	markWalls(Tail).
 
+
+checkLitUp(Board) :-
+	flatten(Board, FlatBoard),
+	not(checkLitUpLoop(FlatBoard)).
+checkLitUpLoop([H|_]) :-
+	var(H).
+checkLitUpLoop([_|T]):-
+	checkLitUpLoop(T).
 
 % Checks all the line groups and fails if one has more than 1 light
 checkLines(puzzle(size(_,_), board(_), tBoard(_), lines(L), walls(_), tiles(_))) :- 
