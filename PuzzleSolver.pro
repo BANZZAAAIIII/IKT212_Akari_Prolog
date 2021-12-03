@@ -18,8 +18,6 @@ doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lin
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!,
 	solve(Board),
-	% checkLines(Board), !,
-	% checkNums(Board),
 	!.
 
 solve(puzzle(size(_,_), board(_), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
@@ -517,5 +515,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-% :- run.
-%:- halt.
+:- run.
+:- halt.
