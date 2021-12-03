@@ -1,5 +1,13 @@
 puzzles 1
+<<<<<<< HEAD
 size 9x3
 X___XX_X_
 XX_XX_XX_
 XX1_XXX__
+=======
+size 9x4
+_________
+XX_XX_XX_
+XX1_XXX__
+_XXX_2_3_
+>>>>>>> b2e2872 (Fixed bug in setupNumes and placeLight)

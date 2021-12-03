@@ -4,12 +4,10 @@ outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
 % inputFile('./unsolved/puzzle_02.txt').
-% inputFile('./unsolved/puzzle_06.txt').
-% inputFile('./unsolved/puzzleSolved_02.txt').
-% inputFile('./unsolved/puzzle_03.txt').
+inputFile('./unsolved/puzzle_03.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
-inputFile('.\\unsolved\\puzzle_00.txt').
+% inputFile('.\\unsolved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_01.txt').
 % inputFile('.\\unsolved\\puzzle_02.txt').
 % inputFile('.\\unsolved\\puzzleSolved_02.txt').
@@ -70,14 +68,14 @@ countFreeVars([],0).
 countFreeVars([X|T],N) :- var(X), countFreeVars(T, N1), N is N1 + 1.
 countFreeVars([_|T],N) :- countFreeVars(T,N).
 
-solve(puzzle(size(_,_), board(Board), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
+solve(puzzle(size(_,_), board(Board), tBoard(_), lines(_), walls(Walls), tiles(S))) :- 
 	flatten(S, NewS),
-	backtracking(NewS),
+	backtracking(NewS), 
 	checkNum(Walls),
-	checkLines(Lines),
-	checkLitUp(Board).
+	checkLitUp(Board),
+	!.
 backtracking([]).
-backtracking([H|T]) :-
+backtracking([H|T]) :- 
 	placeLight(H),
 	backtracking(T).
 backtracking([_|T]) :-
@@ -92,7 +90,7 @@ placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	% write("Value: "), write(Tile), nl,
 	% write("Lines: "), write(Lines), nl,
 	% write("Walls: "), write(Walls), nl, 
-	checkLines(Lines, 1),
+	not(countLines(Lines)),		% Check if the line groups have lights
 	checkLightsWallsLessThan(Walls),
 	Tile = '*', 
 	setLines(Lines), 	% Light up intersecting tiles on given tiles row and column
@@ -116,8 +114,7 @@ setWalls(Walls):-
 	checkNum(Walls),
 	markWalls(Walls).
 setWalls(_) :-
-	true,
-	!.
+	true.
 markWalls([]).
 markWalls([[_|Walls]|Tail]):-
 	% write("Mark wall:"), write(Num), nl,
@@ -134,16 +131,12 @@ checkLitUpLoop([H|_]) :-
 checkLitUpLoop([_|T]):-
 	checkLitUpLoop(T).
 
-% Checks all the line groups and fails if one has more than 1 light
-checkLines(puzzle(size(_,_), board(_), tBoard(_), lines(L), walls(_), tiles(_))) :- 
-	checkLines(L, 2).
-
-checkLines([], _).
-checkLines([H|T], Limit) :-
-	checkLines(T, Limit),
-	countLightsWalls(H, N), 
-	!,
-	N < Limit.
+% Checks all the line groups and checks 
+countLines([]).
+countLines([H|T]) :-
+	freeMember('*', H), !,
+	countLines(T).
+countLines(_) :- !, fail.
 
 
 checkLightsWallsLessThan([]).
@@ -160,9 +153,6 @@ checkLessThanNrOfLights(Num, A) :-
 	NrOfLights < Num.
 
 % Checks that number constraint for all num tiles are correct
-checkNums(puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(Walls), tiles(_))):- 
-	% write("All Walls: "), write(Walls), nl,
-	checkNum(Walls).
 checkNum([]).
 checkNum([[Num|Walls]|Tail]):- 
 	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl, 
@@ -181,17 +171,6 @@ checkCorrectNrOfLights(Num, A) :-
 countLightsWalls([],0).
 countLightsWalls([X|T],N) :- not(var(X)), X == '*', countLightsWalls(T, N1), N is N1 + 1.
 countLightsWalls([_|T],N) :- countLightsWalls(T,N).
-
-
-setValue(Board, Row, RowNum, ColNum, Val, NewBoard) :-
-	replace_nth1(Row, ColNum, Val, NewRow),
-	replace_nth1(Board, RowNum, NewRow, NewBoard).
-
-replace_nth1(List, Index, NewElem, NewList) :-
-	% predicate works forward: Index,List -> OldElem, Transfer
-	nth1(Index,List,_,Transfer),
-	% predicate works backwards: Index,NewElem,Transfer -> NewList
-	nth1(Index,NewList,NewElem,Transfer).
 
 getValue(Board, RowNum, ColNum, Val) :-
     nth1(RowNum, Board, Row), nth1(ColNum, Row, Val).
@@ -215,7 +194,7 @@ setupBoard(Board, NewBoard):-
 
 % Adds tiles(S) to the datastructure
 % This contains a free tiles on the board with its corresponding line and walls
-setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(_), walls(Walls), tiles(S))) :-
+setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls), tiles(S))) :-
 	createSolverMatrix(Col, Row, S),
 	createSolverTiles(B, Walls, Lines, S), % List of tile(value(_), lines([line groups]))
 	% write(S), nl,
@@ -251,32 +230,28 @@ createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :-
 checkLines(_, [], Result):-
 	Result = [].
 checkLines(Tile, [H|T], Result) :- 
+	freeMember(Tile, H),
 	checkLines(Tile, T, Result1),
-	% write("Line group: "), write(H), nl,
-	(freeMember(Tile, H) ->
-		% write("Success"), nl, 
-		append([H], Result1, Result);
-		% write("Failure"),
-		Result = Result1,
-		true, !
-	).
+	append([H], Result1, Result).
+checkLines(Tile, [_|T], Result) :-
+	checkLines(Tile, T, Result1),
+	Result = Result1.
 
 checkWalls(_, [], Result) :-
 	Result = [].
-checkWalls(Tile, [H|T], Result) :- 
-	checkWalls(Tile, T, Result1),
+checkWalls(Tile, [H|T], Result) :-
 	nth1(2, H, WallTiles),
-	(freeMember(Tile, WallTiles) ->
-		append([H], Result1, Result);
-		Result = Result1,
-		true
-	).
+	freeMember(Tile, WallTiles),
+	checkWalls(Tile, T, Result1),
+	append([H], Result1, Result).
+checkWalls(Tile, [_|T], Result) :-
+	checkWalls(Tile, T, Result1),
+	Result = Result1.
 
 % Checks if Elem is the given list, works with free variables, if not in list fail
-freeMember(_, []) :- fail.
+freeMember(_, []) :- !, fail. % Readbility, not necesarry but shows that it fails if not match is met before the list is
 freeMember(Elem, [H|_]) :-
-	Elem == H,
-	!.
+	Elem == H, !.
 freeMember(Elem, [_|T]) :-
 	freeMember(Elem, T).
 
@@ -318,31 +293,29 @@ splitLine([H|T],  Line, Result) :-
 
 % Adds walls(W) to the datastructure
 % This countains a list of all number walls with its adjacent tiles
-setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), NewBoard):-
-	findNums(B, Row, Col, Row, Col, R),
+setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(R))):-
+	findNums(B, Row, Col, Row, Col, R).
 	% write("Walls: "), write(R), nl,
-	addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), R, NewBoard).
-
-addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), Walls, puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls))).
+	% addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), R, NewBoard).
 
 findNums(Board, _, _, 1, 1, Result):-
 	getValue(Board, 1, 1, Val),
 	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList), 
-	%write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
+	% write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
 	append(_, AdjacentList, Result).
 findNums(Board, Col, Row, 1, CurrentRow, Result):- 
 	R1 is CurrentRow - 1,
 	findNums(Board, Col, Row, Col, R1, R),
 	getValue(Board, CurrentRow, 1, Val),
 	getAdjacentIfNum(Board, CurrentRow, 1, Val, AdjacentList),
-	%write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
+	% write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
 	append(R, AdjacentList, Result).
 findNums(Board, Col, Row, CurrentCol, CurrentRow, Result):-
 	C1 is CurrentCol - 1,
 	findNums(Board, Col, Row, C1, CurrentRow, R),
 	getValue(Board, CurrentRow, CurrentCol, Val),
 	getAdjacentIfNum(Board, CurrentRow, CurrentCol, Val, AdjacentList),
-	%write("Col: "), write(CurrentCol), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
+	% write("Col: "), write(CurrentCol), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
 	append(R, AdjacentList, Result).
 
 
@@ -473,13 +446,6 @@ readHintLine(N):-
 	N1 is N-1,
 	get_code(_),
 	readHintLine(N1).
-
-readLines(_,0).
-readLines(Row,Col):-
-	Col>0,
-	Col1 is Col-1,
-	readHintLine(Row),
-	readLines(Row,Col1).
 
 
 readInt(N):-
