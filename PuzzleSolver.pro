@@ -19,8 +19,56 @@ inputFile('./unsolved/puzzle_02.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!,
-	solve(Board),
+	trivialSolver(Board),
 	!.
+
+trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T))) :-
+	flatten(T, Tiles),
+	write("All tiles: ") , write(Tiles), nl,
+	looper(B, Tiles, Flag),
+	write(" Flag ") , write(Flag), nl,
+	write(" LOOOOOOPER ") , write(Tiles), nl.
+	% (not(var(Flag)) -> % Fixs
+	% 	trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T)));
+	% 	true
+	% ).
+
+looper(_, [], _):- nl, write("AAAAHHHH") , nl.
+looper(B, [tile(value(Tile), lines(Lines), walls(Walls))|Tiles], Flag) :- 
+
+	write("Tile:  ") , write(Tile), nl,
+	write("Walls: ") , write(Walls), nl,
+	write("Flag:  ") , write(Flag), nl,
+	% trace,
+	waller(B, tile(value(Tile), lines(Lines), walls(Walls)), Walls, Flag), !,
+	looper(B, Tiles, Flag), !.
+	
+waller(_, _, [], _).
+waller(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|Wall]|Tail], Flag) :-
+	write("NumWall: ") , write(NumWall), nl,
+	write("Wall:    ") , write(Wall), nl,
+	write("Tail:    ") , write(Tail), nl,
+	write("Flag:    ") , write(Flag), nl,
+	flatten(Wall, W),
+	
+	countFreeVars(W, Num),
+	% trace,
+	
+	(NumWall >= Num ->
+		write("True  - Free Vars: ") , write(Num), nl,
+		(placeLight(tile(value(Tile), lines(Lines), walls(Walls))) ->
+			setWalls([NumWall|Wall]), writeBoard(B), Flag is 1, true;
+			writeBoard(B), Flag is 1, true
+		);
+		write("False - Free Vars: ") , write(Num), nl
+	),
+	nl.
+	% waller(Tail, Flag).
+
+countFreeVars([],0).
+countFreeVars([X|T],N) :- var(X), countFreeVars(T, N1), N is N1 + 1.
+countFreeVars([_|T],N) :- countFreeVars(T,N).
+
 
 solve(puzzle(size(_,_), board(_), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
 	flatten(S, NewS),
@@ -520,5 +568,5 @@ solvePuzzles(N) :-
 	N1 is N-1,
 	solvePuzzles(N1).
 
-:- run.
-:- halt.
+% :- run.
+% :- halt.
