@@ -1,11 +1,12 @@
 puzzles 1
-size 4x9
-XX_X
-X2__
-2_XX
-_XXX
-_XX_
-XXXX
-XX__
-____
-__2X
+size 9x10
+0________
+__X__3___
+___1X____
+X___XX_X_
+XX_XX_XX_
+XX1_XXX__
+1XXX_2_3_
+________X
+___X__XXX
+__1_2__XX
