@@ -4,10 +4,10 @@ outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
 % inputFile('./unsolved/puzzle_02.txt').
-inputFile('./unsolved/puzzle_03.txt').
+% inputFile('./unsolved/puzzle_03.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
-% inputFile('.\\unsolved\\puzzle_00.txt').
+inputFile('.\\unsolved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_01.txt').
 % inputFile('.\\unsolved\\puzzle_02.txt').
 % inputFile('.\\unsolved\\puzzleSolved_02.txt').
@@ -49,7 +49,7 @@ placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	checkLightsWallsLessThan(Walls),
 	Tile = '*', 
 	setLines(Lines), 	% Light up intersecting tiles on given tiles row and column
-	setWalls(Walls),	% Mark tiles that are no longer valid for light placement
+	% setWalls(Walls),	% Mark tiles that are no longer valid for light placement
 	!.
 
 % Light up intersecting tiles on given tiles row and column
@@ -300,7 +300,7 @@ setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), NewBoard):-
 
 addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), Walls, puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls))).
 
-findNums(_, _, _, 1, 1, Result):-
+findNums(Board, _, _, 1, 1, Result):-
 	getValue(Board, 1, 1, Val),
 	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList), 
 	%write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
@@ -524,7 +524,7 @@ solvePuzzles(0).
 solvePuzzles(N) :- 
 	N>0, 
 	readProblem(P),
-	doSolve(P, S),
+	time(doSolve(P, S)),
 	writeFullOutput(S),
 	!,
 	N1 is N-1,
