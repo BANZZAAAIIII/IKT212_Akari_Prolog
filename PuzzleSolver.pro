@@ -6,11 +6,6 @@ outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_02.txt').
 inputFile('./unsolved/puzzle_06.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
-% outputFile('.\\solved\\puzzle_00.txt').
-% inputFile('.\\unsolved\\puzzle_00.txt').
-% inputFile('.\\unsolved\\puzzle_01.txt').
-% inputFile('.\\unsolved\\puzzle_02.txt').
-% inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 
 
@@ -20,8 +15,8 @@ inputFile('./unsolved/puzzle_06.txt').
 doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
 	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
 	!,
-	time(trivialSolver(Board)), 
-	time(solve(Board)),
+	trivialSolver(Board),
+	solve(Board),
 	!.
 
 % Trivial solver places lights around number tiles that only have one possible solution
@@ -57,7 +52,7 @@ checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|
 		% write("True  - NumLights: ") , write(NumLights), nl,
 		(placeLight(tile(value(Tile), lines(Lines), walls(Walls))) ->
 			setWalls([NumWall|Wall]), 
-			writeBoard(B), nl, 
+			% writeBoard(B), nl, 
 			Flag is 1, % Flags to indicate that trivialSolver should be called again
 			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag);
 			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag)
@@ -70,7 +65,6 @@ countFreeVars([X|T],N) :- var(X), countFreeVars(T, N1), N is N1 + 1.
 countFreeVars([_|T],N) :- countFreeVars(T,N).
 
 solve(puzzle(size(_,_), board(Board), tBoard(_), lines(Lines), walls(Walls), tiles(S))) :-
-
 	flatten(S, NewS),
 	backtracking(NewS),
 	checkNum(Walls),
@@ -96,7 +90,7 @@ placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	checkLightsWallsLessThan(Walls),
 	Tile = '*', 
 	setLines(Lines), 	% Light up intersecting tiles on given tiles row and column
-	setWalls(Walls),	% Mark tiles that are no longer valid for light placement
+	% setWalls(Walls),	% Mark tiles that are no longer valid for light placement
 	!.
 
 % Light up intersecting tiles on given tiles row and column
@@ -370,13 +364,11 @@ findNums(Board, Col, Row, CurrentCol, CurrentRow, Result):-
 
 getAdjacentIfNum(Board, Col, Row, Num, List) :-
 	%write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl,
-	(integer(Num) -> % We only want to check if the tile is a number
-		getAdjacentTiles(Board, Col, Row, R),
-		append([], [[Num, R]], List)
-		;
-		List = [],
-		true
-    ).
+	integer(Num),% We only want to check if the tile is a number
+	getAdjacentTiles(Board, Col, Row, R),
+	append([], [[Num, R]], List).
+getAdjacentIfNum(_, _, _, _, List) :-
+	List = [].
 
 getAdjacentTiles(Board, Col, Row, R) :-
     getAdjacentPositions(Col, Row, PosList),
@@ -439,7 +431,7 @@ writeLine([Head|Tail]):-
 	(var(Head) ->
 		write('_');
 		(Head == '+' ->
-			write('+');
+			write('_');
 			write(Head)
 		)
 	),
