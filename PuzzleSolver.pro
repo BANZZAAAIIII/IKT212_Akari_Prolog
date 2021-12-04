@@ -263,18 +263,15 @@ setupLines(puzzle(size(Col,Row), board(B), tBoard(TB)), puzzle(size(Col,Row), bo
 	append(Lines, TLines, L),
 	!.
 
-findLines([], _).
+findLines([], []).
 findLines([H|T], Result) :- 
 	findLines(T, Result1),
-	splitLine(H, Line, Result2), 
+	splitLine(H, Line, Result2),
 	(is_empty(Line) ->
 		Result3 = Result2;
 		append([Line], Result2, Result3)
 	),
-	(var(Result1) ->
-		Result = Result3;
-		append(Result3, Result1, Result)
-	).
+	append(Result3, Result1, Result).
 splitLine([], Line, Result) :-
 	Line = [],
 	Result = [].
