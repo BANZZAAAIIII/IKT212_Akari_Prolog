@@ -383,16 +383,16 @@ writeBoard([H|T]):-
 
 writeLine([]):- nl.
 writeLine([Head|Tail]):-
-	(var(Head) ->
-		write('_');
-		(Head == '+' ->
-			write('_');
-			write(Head)
-		)
-	),
+	var(Head),
+	write('_'),
 	writeLine(Tail).
-
-
+writeLine([Head|Tail]) :-
+	Head == '+',
+	write('_'),
+	writeLine(Tail).
+writeLine([Head|Tail]) :-
+	write(Head),
+	writeLine(Tail).
 
 /********************************************/
 /********************** reading the input **/
