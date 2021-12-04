@@ -4,8 +4,15 @@ outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
 % inputFile('./unsolved/puzzle_02.txt').
-inputFile('./unsolved/puzzle_06.txt').
+% inputFile('./unsolved/puzzle_06.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
+% inputFile('./unsolved/puzzle_03.txt').
+% inputFile('./unsolved/puzzleSolved_02.txt').
+% outputFile('.\\solved\\puzzle_00.txt').
+inputFile('.\\unsolved\\puzzle_00.txt').
+% inputFile('.\\unsolved\\puzzle_01.txt').
+% inputFile('.\\unsolved\\puzzle_02.txt').
+% inputFile('.\\unsolved\\puzzleSolved_02.txt').
 
 
 
@@ -38,7 +45,6 @@ checkTiles(B, [tile(value(Tile), lines(Lines), walls(Walls))|Tiles], Flag) :-
 	
 checkWallConstraint(_, _, [], _).
 checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|Wall]|Tail], Flag) :-
-
 	flatten(Wall, W),
 	countFreeVars(W, NumFree),
 	countLightsWalls(W, NumLights), !,
@@ -341,7 +347,7 @@ setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), NewBoard):-
 
 addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), Walls, puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(Walls))).
 
-findNums(_, _, _, 1, 1, Result):-
+findNums(Board, _, _, 1, 1, Result):-
 	getValue(Board, 1, 1, Val),
 	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList), 
 	%write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
@@ -563,7 +569,7 @@ solvePuzzles(0).
 solvePuzzles(N) :- 
 	N>0, 
 	readProblem(P),
-	doSolve(P, S),
+	time(doSolve(P, S)),
 	writeFullOutput(S),
 	!,
 	N1 is N-1,
