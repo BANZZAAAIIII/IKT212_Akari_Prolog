@@ -3,8 +3,8 @@
 outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
-% inputFile('./unsolved/puzzle_02.txt').
-inputFile('./unsolved/puzzle_03.txt').
+inputFile('./unsolved/puzzle_02.txt').
+% inputFile('./unsolved/puzzle_03.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
 % inputFile('.\\unsolved\\puzzle_00.txt').
@@ -279,17 +279,18 @@ splitLine([], Line, Result) :-
 	Line = [],
 	Result = [].
 splitLine([H|T],  Line, Result) :- 
+	var(H),
 	splitLine(T, Line1, Result1),
 	% write(", Val: "), write(H), write(", Line: "), write(Line1), write(", Lines: "), write(Result1), nl,
-	(var(H) ->
-		append([H], Line1, Line),
+	append([H], Line1, Line),
+	Result = Result1.
+splitLine([_|T], Line, Result) :-
+	splitLine(T, Line1, Result1),
+	(is_empty(Line1) ->
 		Result = Result1;
-		(is_empty(Line1) ->
-			Result = Result1;
-			append([Line1], Result1, Result)
-		),
-		Line = []
-	).
+		append([Line1], Result1, Result)
+	),
+	Line = [].
 
 % Adds walls(W) to the datastructure
 % This countains a list of all number walls with its adjacent tiles

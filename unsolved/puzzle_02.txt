@@ -1,4 +1,4 @@
-puzzles 2
+puzzles 4
 size 4x6
 ____
 _4__
@@ -16,3 +16,21 @@ XXXX
 XX__
 ____
 __2X
+size 8x9
+10__X_X_
+_X_XXXXX
+__X2_XXX
+_X___XXX
+_XX___2_
+X_XX_XX_
+_XXXXXX_
+_1XX_XX_
+_X_2_XXX
+size 8x7
+_X__X_2_
+__3_X_XX
+0____X__
+2_X_XXX_
+________
+X1___X1_
+X_XX__X_
