@@ -3,7 +3,7 @@
 outputFile('./solved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_00.txt').
 % inputFile('./unsolved/puzzle_01.txt').
-inputFile('./unsolved/puzzle_02.txt').
+inputFile('./unsolved/puzzle_07.txt').
 % inputFile('./unsolved/puzzle_03.txt').
 % inputFile('./unsolved/puzzleSolved_02.txt').
 % outputFile('.\\solved\\puzzle_00.txt').
@@ -28,11 +28,8 @@ doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lin
 trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T))) :-
 	flatten(T, Tiles),
 	checkTiles(B, Tiles, Flag),
-	
-	(not(var(Flag)) -> % If any light are placed a new number wall choulde have lights placed around itself
-		trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T)));
-		true
-	).
+	not(var(Flag)), % If any light are placed a new number wall choulde have lights placed around itself
+	trivialSolver(puzzle(size(C,R), board(B), tBoard(TB), lines(L), walls(W), tiles(T))).
 trivialSolver(_).
 
 checkTiles(_, [], _).
@@ -55,7 +52,7 @@ checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|
 		% write("True  - NumFree  : ") , write(NumFree), nl,
 		% write("True  - NumLights: ") , write(NumLights), nl,
 		(placeLight(tile(value(Tile), lines(Lines), walls(Walls))) ->
-			setWalls([NumWall|Wall]), 
+		setWalls([NumWall|Wall]), 
 			% writeBoard(B), nl, 
 			Flag is 1, % Flags to indicate that trivialSolver should be called again
 			checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), Tail, Flag);
