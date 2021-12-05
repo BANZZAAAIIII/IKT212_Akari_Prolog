@@ -1,5 +1,5 @@
 outputFile('./solved/puzzle_00.txt').
-inputFile('./unsolved/puzzle_03.txt').
+inputFile('./unsolved/puzzle_02.txt').
 
 
 
@@ -59,18 +59,21 @@ backtracking([H|T]) :-
 	backtracking(T).
 backtracking([_|T]) :-
 	backtracking(T).
-tempPlaceLight(Col, Row, puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(_), tiles(S))) :- 
-	getValue(S, Col, Row, Val),
-	placeLight(Val).
-
 
 placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	var(Tile),
-	not(countLines(Lines)),	% Check if the line groups have lights
 	checkLightsWallsLessThan(Walls),
 	Tile = '*', 
 	setLines(Lines), 	    % Light up intersecting tiles on given tiles row and column
 	!.
+
+checkLitUp(Board) :-
+	flatten(Board, FlatBoard),
+	not(checkLitUpLoop(FlatBoard)).
+checkLitUpLoop([H|_]) :-
+	var(H).
+checkLitUpLoop([_|T]):-
+	checkLitUpLoop(T).
 
 % Light up intersecting tiles on given tiles row and column
 setLines([]).
@@ -95,23 +98,6 @@ markWalls([[_|Walls]|Tail]):-
 	flatten(Walls, FlattWalls), 
 	setLine(FlattWalls), 
 	markWalls(Tail).
-
-
-checkLitUp(Board) :-
-	flatten(Board, FlatBoard),
-	not(checkLitUpLoop(FlatBoard)).
-checkLitUpLoop([H|_]) :-
-	var(H).
-checkLitUpLoop([_|T]):-
-	checkLitUpLoop(T).
-
-% Checks all the line groups and checks 
-countLines([]).
-countLines([H|T]) :-
-	freeMember('*', H), !,
-	countLines(T).
-countLines(_) :- !, fail.
-
 
 checkLightsWallsLessThan([]).
 checkLightsWallsLessThan([[Num|Walls]|Tail]):- 
@@ -336,7 +322,7 @@ writeLine([Head|Tail]):-
 	writeLine(Tail).
 writeLine([Head|Tail]) :-
 	Head == '+',
-	write('+'),
+	write('_'),
 	writeLine(Tail).
 writeLine([Head|Tail]) :-
 	write(Head),
