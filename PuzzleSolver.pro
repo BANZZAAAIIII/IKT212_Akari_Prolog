@@ -1,25 +1,13 @@
-% outputFile('./puzzle_solved.txt').
-% inputFile('./puzzle_unsolved.txt').
 outputFile('./solved/puzzle_00.txt').
-% inputFile('./unsolved/puzzle_00.txt').
-% inputFile('./unsolved/puzzle_01.txt').
-inputFile('./unsolved/puzzle_07.txt').
-% inputFile('./unsolved/puzzle_03.txt').
-% inputFile('./unsolved/puzzleSolved_02.txt').
-% outputFile('.\\solved\\puzzle_00.txt').
-% inputFile('.\\unsolved\\puzzle_00.txt').
-% inputFile('.\\unsolved\\puzzle_01.txt').
-% inputFile('.\\unsolved\\puzzle_02.txt').
-% inputFile('.\\unsolved\\puzzleSolved_02.txt').
+inputFile('./unsolved/puzzle_03.txt').
 
 
 
 /********************************************/
 /********************* solving the puzzle **/
 /******************************************/
-doSolve(InitialBoard, Board):- % puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(W))
-	setupBoard(InitialBoard, Board), % puzzle(size(Col,Row), board(B), tBoard(TB), lines(L), walls(Walls), tiles(S))
-	!,
+doSolve(InitialBoard, Board):- 
+	setupBoard(InitialBoard, Board), !,
 	trivialSolver(Board),
 	solve(Board),
 	!.
@@ -45,12 +33,6 @@ checkWallConstraint(B, tile(value(Tile), lines(Lines), walls(Walls)), [[NumWall|
 	countLightsWalls(W, NumLights), !,
 	Num is NumFree + NumLights,		
 	(NumWall >= Num, dif(NumWall, NumLights) ->
-		% write("NumWall: ") , write(NumWall), nl,
-		% write("Wall:    ") , write(Wall), nl,
-		% write("Tail:    ") , write(Tail), nl,
-		% write("Flag:    ") , write(Flag), nl,
-		% write("True  - NumFree  : ") , write(NumFree), nl,
-		% write("True  - NumLights: ") , write(NumLights), nl,
 		(placeLight(tile(value(Tile), lines(Lines), walls(Walls))) ->
 		setWalls([NumWall|Wall]), 
 			% writeBoard(B), nl, 
@@ -81,17 +63,13 @@ tempPlaceLight(Col, Row, puzzle(size(_,_), board(_), tBoard(_), lines(_), walls(
 	getValue(S, Col, Row, Val),
 	placeLight(Val).
 
-% placeLight(tile(value(?Tile), lines(Lines), walls(Walls)))
+
 placeLight(tile(value(Tile), lines(Lines), walls(Walls))) :-
 	var(Tile),
-	% write("Value: "), write(Tile), nl,
-	% write("Lines: "), write(Lines), nl,
-	% write("Walls: "), write(Walls), nl, 
-	not(countLines(Lines)),		% Check if the line groups have lights
+	not(countLines(Lines)),	% Check if the line groups have lights
 	checkLightsWallsLessThan(Walls),
 	Tile = '*', 
-	setLines(Lines), 	% Light up intersecting tiles on given tiles row and column
-	% setWalls(Walls),	% Mark tiles that are no longer valid for light placement
+	setLines(Lines), 	    % Light up intersecting tiles on given tiles row and column
 	!.
 
 % Light up intersecting tiles on given tiles row and column
@@ -114,7 +92,6 @@ setWalls(_) :-
 	true.
 markWalls([]).
 markWalls([[_|Walls]|Tail]):-
-	% write("Mark wall:"), write(Num), nl,
 	flatten(Walls, FlattWalls), 
 	setLine(FlattWalls), 
 	markWalls(Tail).
@@ -138,21 +115,17 @@ countLines(_) :- !, fail.
 
 checkLightsWallsLessThan([]).
 checkLightsWallsLessThan([[Num|Walls]|Tail]):- 
-	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl, 
 	checkLessThanNrOfLights(Num, Walls),
 	checkLightsWallsLessThan(Tail).
 
 checkLessThanNrOfLights(Num, A) :-
 	flatten(A, Adjacent),
     countLightsWalls(Adjacent, NrOfLights), !,
-	% write("Tiles: "), write(Adjacent), nl,
-    % write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
 	NrOfLights < Num.
 
 % Checks that number constraint for all num tiles are correct
 checkNum([]).
-checkNum([[Num|Walls]|Tail]):- 
-	% write("num: "), write(Num), write(", Walls: "), write(Walls), nl, 
+checkNum([[Num|Walls]|Tail]):-  
 	checkCorrectNrOfLights(Num, Walls),
 	checkNum(Tail).
 
@@ -160,8 +133,6 @@ checkNum([[Num|Walls]|Tail]):-
 checkCorrectNrOfLights(Num, A) :-
 	flatten(A, Adjacent),
     countLightsWalls(Adjacent, NrOfLights), !,
-	% write("Tiles: "), write(Adjacent), nl,
-    % write("Nr of lights: "), write(NrOfLights), write(" of "), write(Num), nl,
 	NrOfLights == Num.
 
 % Counts number if * in a list while ignoring/skipping free vars
@@ -194,13 +165,11 @@ setupBoard(Board, NewBoard):-
 setupSolver(puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls)), puzzle(size(Col,Row), board(B), tBoard(TB), lines(Lines), walls(Walls), tiles(S))) :-
 	createSolverMatrix(Col, Row, S),
 	createSolverTiles(B, Walls, Lines, S), % List of tile(value(_), lines([line groups]))
-	% write(S), nl,
 	!.
 
 createSolverMatrix(Col, Row, Board) :-
 	length(Board, Row),
 	createColumn(Board, Col),
-	% write("Solver Matrix: "), write(Board),nl,
 	!.
 createColumn([], _).
 createColumn([H|T], Col) :-
@@ -210,18 +179,14 @@ createColumn([H|T], Col) :-
 
 createSolverTiles([], _, _, []).
 createSolverTiles([Bh|Bt], Walls, Lines, [Sh|St]) :- 
-	% write("BoardLine: "), write(Bh),nl,
-	% write("SolverLine: "), write(SH),nl,
 	createSolverLine(Bh, Walls, Lines, Sh),		% Loop a line 
 	createSolverTiles(Bt, Walls, Lines, St).	% Next Row
 
 createSolverLine([], _, _, []).
 createSolverLine([Lh|Lt], Walls, Lines, [Rh|Rt]) :- 
-	% write("Tile: "), write(Lh), nl, 
 	checkLines(Lh, Lines, LineResult), 	% Check tile
 	checkWalls(Lh, Walls, WallResult), 
 	Rh = tile(value(Lh), lines(LineResult), walls(WallResult)),
-	% write("Result: "), write(Result), nl,
 	createSolverLine(Lt, Walls, Lines, Rt). % Next tile
 
 checkLines(_, [], Result):-
@@ -269,13 +234,13 @@ findLines([H|T], Result) :-
 		append([Line], Result2, Result3)
 	),
 	append(Result3, Result1, Result).
+
 splitLine([], Line, Result) :-
 	Line = [],
 	Result = [].
 splitLine([H|T],  Line, Result) :- 
 	var(H),
 	splitLine(T, Line1, Result1),
-	% write(", Val: "), write(H), write(", Line: "), write(Line1), write(", Lines: "), write(Result1), nl,
 	append([H], Line1, Line),
 	Result = Result1.
 splitLine([_|T], Line, Result) :-
@@ -290,33 +255,27 @@ splitLine([_|T], Line, Result) :-
 % This countains a list of all number walls with its adjacent tiles
 setupNums(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), puzzle(size(Row,Col), board(B), tBoard(TB), lines(L), walls(R))):-
 	findNums(B, Row, Col, Row, Col, R).
-	% write("Walls: "), write(R), nl,
-	% addWallsToStruct(puzzle(size(Row,Col), board(B), tBoard(TB), lines(L)), R, NewBoard).
 
 findNums(Board, _, _, 1, 1, Result):-
 	getValue(Board, 1, 1, Val),
 	getAdjacentIfNum(Board, 1, 1, Val, AdjacentList), 
-	% write("Col: "), write(1), write(", Row: "), write(1), write(", Val: "), write(Val), nl,
 	append(_, AdjacentList, Result).
 findNums(Board, Col, Row, 1, CurrentRow, Result):- 
 	R1 is CurrentRow - 1,
 	findNums(Board, Col, Row, Col, R1, R),
 	getValue(Board, CurrentRow, 1, Val),
 	getAdjacentIfNum(Board, CurrentRow, 1, Val, AdjacentList),
-	% write("Col: "), write(1), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
 	append(R, AdjacentList, Result).
 findNums(Board, Col, Row, CurrentCol, CurrentRow, Result):-
 	C1 is CurrentCol - 1,
 	findNums(Board, Col, Row, C1, CurrentRow, R),
 	getValue(Board, CurrentRow, CurrentCol, Val),
 	getAdjacentIfNum(Board, CurrentRow, CurrentCol, Val, AdjacentList),
-	% write("Col: "), write(CurrentCol), write(", Row: "), write(CurrentRow), write(", Val: "), write(Val), nl,
 	append(R, AdjacentList, Result).
 
 
 getAdjacentIfNum(Board, Col, Row, Num, List) :-
-	%write("Row: "), write(Row), write(", "), write("Col: "), write(Col), nl,
-	integer(Num),% We only want to check if the tile is a number
+	integer(Num), % We only want to check if the tile is a number
 	getAdjacentTiles(Board, Col, Row, R),
 	append([], [[Num, R]], List).
 getAdjacentIfNum(_, _, _, _, List) :-
@@ -324,19 +283,16 @@ getAdjacentIfNum(_, _, _, _, List) :-
 
 getAdjacentTiles(Board, Col, Row, R) :-
     getAdjacentPositions(Col, Row, PosList),
-    % write("adjc pos: "), write(PosList), nl,
 	getTiles(Board, PosList, R).
 
 getTiles(_, [], []).
 getTiles(Board, [Pos|PosList], Result) :-
 	getTiles(Board, PosList, Result1),
-	%write("Pos: "), write(Pos), write(", List: "), write(PosList), nl,
 	checkPos(Board, Pos, R),
 	!,
 	append(Result1, [R], Result).
 
 checkPos(Board, [Col|[Row|_]], R) :-
-    % write("check pos: "), write(Col), write(" "), write(Row), nl,
 	getValue(Board, Col, Row, R).
 checkPos(_, _, []).
 
@@ -345,7 +301,6 @@ getAdjacentPositions(X, Y, R) :-
 	Y1 is Y - 1, Y2 is Y + 1,
 	append([], [[X1, Y], [X2, Y], [X, Y1], [X, Y2]], R).
 
-%!  transpose(puzzle(size(X,Y), board(B)), puzzle(size(X,Y), board(B), tBoard(TB))).
 %   Transpose a matrix board
 transpose(puzzle(size(Row,Column), board(B)), puzzle(size(Row,Column), board(B), tBoard(TB))):-
 	trans(B, TB).
@@ -361,16 +316,12 @@ trans([S1|S2], [R1|R2], [S1|L1], [S2|M]):-
     trans(R1, R2, L1, M).
 
 
-
 /********************************************/
 /********************* writing the result **/
 /******************************************/
 writeFullOutput(puzzle(size(Row,Col), board(B), tBoard(_), lines(_), walls(_), tiles(_))):-
 	write("size "), write(Row), write("x"), write(Col), nl,
-	writeBoard(B),
-	% write("size "), write(Col), write("x"), write(Row), write(", Transpose"), nl,
-	% writeBoard(TB),
-	!.
+	writeBoard(B), !.
 writeFullOutput(P):- write('Cannot solve puzzle: '), write(P), nl.
 
 writeBoard([]).
@@ -385,11 +336,12 @@ writeLine([Head|Tail]):-
 	writeLine(Tail).
 writeLine([Head|Tail]) :-
 	Head == '+',
-	write('_'),
+	write('+'),
 	writeLine(Tail).
 writeLine([Head|Tail]) :-
 	write(Head),
 	writeLine(Tail).
+
 
 /********************************************/
 /********************** reading the input **/
@@ -408,12 +360,10 @@ findKW(_):-
 findKW(KW):-
 	get_code(_), findKW(KW).
 
-
 readKW([]):-
 	get_code(_).
 readKW([H|T]):-
 	get_code(H), readKW(T).
-
 
 readGridLines(_,[]).
 readGridLines(N,[H|T]):-
@@ -434,7 +384,6 @@ translate(X,E):- whitespace(X), get_code(Y), translate(Y,E).
 translate(X,E):- name(E,[X]).
 whitespace(10). whitespace(12). whitespace(32).
 
-
 readHintLine(0).
 readHintLine(N):-
 	N>0,
@@ -442,11 +391,9 @@ readHintLine(N):-
 	get_code(_),
 	readHintLine(N1).
 
-
 readInt(N):-
 	get_code(M),
 	handleCode(M,N).
-
 
 handleCode(M,N):-
 	is_number_code(M,N1),
@@ -458,7 +405,6 @@ handleCode(-1,_):-
 handleCode(_,N):-
 	readInt(N).
 
-
 continueInt(O,N):-
 	get_code(M),
 	is_number_code(M,M1),
@@ -467,13 +413,11 @@ continueInt(O,N):-
 	continueInt(H,N).
 continueInt(N,N).
 
-
 is_number_code(N, N1):-
 	N>=48,
 	N<58,
 	N1 is N-48.
 is_number_code(95,0).
-
 
 
 /**********************************************************************************/
@@ -487,9 +431,6 @@ input_output(IF,OF):-
 
 run :-
 	input_output(IF, OF),
-	write("IO: "), nl,
-	write("\tReading from: "), write(IF), nl,
-	write("\twriting to: "), write(OF), nl,
 	see(IF),
 	tell(OF),
 	findKW(puzzles),
@@ -506,13 +447,13 @@ run :-
 
 solvePuzzles(0).
 solvePuzzles(N) :- 
-	N>0, 
+	N > 0, 
 	readProblem(P),
-	time(doSolve(P, S)),
+	doSolve(P, S),
 	writeFullOutput(S),
 	!,
 	N1 is N-1,
 	solvePuzzles(N1).
 
-% :- run.
-% :- halt.
+:- run.
+:- halt.
